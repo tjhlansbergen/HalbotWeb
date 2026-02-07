@@ -1,6 +1,6 @@
 @HalbotWeb_HostAddress = http://localhost:5100
 
-GET {{HalbotWeb_HostAddress}}/weatherforecast/
+GET {{HalbotWeb_HostAddress}}/api/activities/
 Accept: application/json
 
 ###
