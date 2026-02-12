@@ -13,7 +13,6 @@ public class ActivityQueries
     {
         using var conn = _factory.CreateConnection();
 
-
         const string sql = """
             SELECT Id, DataType, SerializedData, Description, IsRace, Gpx
             FROM ActivityRecords
@@ -21,6 +20,20 @@ public class ActivityQueries
         """;
 
         return await conn.QueryAsync<ActivityRecord>(sql);
+    }
+
+    public async Task<ActivityRecord?> GetLastAsync()
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+                SELECT Id, DataType, SerializedData, Description, IsRace, Gpx
+                FROM ActivityRecords
+                ORDER BY Id DESC
+                LIMIT 1
+            """;
+
+        return await conn.QueryFirstOrDefaultAsync<ActivityRecord>(sql);
     }
 }
 

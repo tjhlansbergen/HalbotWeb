@@ -4,3 +4,20 @@ GET {{HalbotWeb_HostAddress}}/api/activities/
 Accept: application/json
 
 ###
+
+GET {{HalbotWeb_HostAddress}}/api/activities/last
+Accept: application/json
+Authorization: Bearer [...]
+
+###
+
+POST {{HalbotWeb_HostAddress}}/api/login
+Accept: application/json
+Content-Type: application/json
+
+{"username":"admin","password":"password"}
+
+###
+
+POST {{HalbotWeb_HostAddress}}/api/logout
+Accept: application/json
