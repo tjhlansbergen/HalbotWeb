@@ -22,26 +22,24 @@ public class ActivityQueries
         return await conn.QueryAsync<ActivityRecord>(sql);
     }
 
-    public async Task<ActivityRecord?> GetLastAsync()
+    public async Task<long> CountAllAsync()
     {
         using var conn = _factory.CreateConnection();
 
         const string sql = """
-                SELECT Id, DataType, SerializedData, Description, IsRace, Gpx
-                FROM ActivityRecords
-                ORDER BY Id DESC
-                LIMIT 1
-            """;
+            SELECT COUNT(*)
+            FROM ActivityRecords
+        """;
 
-        return await conn.QueryFirstOrDefaultAsync<ActivityRecord>(sql);
+        return await conn.ExecuteScalarAsync<long>(sql);
     }
 }
 
 public record ActivityRecord(
     long Id,
-    long DataType,
-    string? SerializedData,
+    ActivityDataType DataType,
+    string SerializedData,
     string? Description,
-    long IsRace,
+    bool IsRace,
     string? Gpx
 );

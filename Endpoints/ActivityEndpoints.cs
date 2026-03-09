@@ -7,10 +7,7 @@ public static class ActivityEndpoints
         var group = app.MapGroup("/api/activities").RequireAuthorization();
 
         // GET /api/activities
-        group.MapGet("/", async ([FromServices] ActivityQueries queries) => await GetAll(queries));
-
-        // GET /api/activities/last
-        group.MapGet("/last", async ([FromServices] ActivityQueries queries) => await GetLast(queries));
+        group.MapGet("/", async ([FromServices] ActivityCache activities) => await GetAll(activities));
 
         // GET /api/activities/{id}
         //
@@ -22,15 +19,9 @@ public static class ActivityEndpoints
         // carefull here!
     }
 
-    private static async Task<IResult> GetAll(ActivityQueries queries)
+    private static async Task<IResult> GetAll(ActivityCache activities)
     {
-        var result = await queries.GetAllAsync();
-        return Results.Ok(result);
-    }
-
-        private static async Task<IResult> GetLast(ActivityQueries queries)
-    {
-        var result = await queries.GetLastAsync();
+        var result = await activities.Get();
         return Results.Ok(result);
     }
 }
