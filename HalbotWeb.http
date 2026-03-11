@@ -2,12 +2,7 @@
 
 GET {{HalbotWeb_HostAddress}}/api/activities/
 Accept: application/json
-
-###
-
-GET {{HalbotWeb_HostAddress}}/api/activities/last
-Accept: application/json
-Authorization: Bearer [...]
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc3MzE1ODI3OCwiaXNzIjoiSGFsYm90V2ViIiwiYXVkIjoiSGFsYm90V2ViVXNlcnMifQ.Rqes6dkxcYDkWdqiAc3ff_-8ns5M_KKi_f3cup_RqU4
 
 ###
 

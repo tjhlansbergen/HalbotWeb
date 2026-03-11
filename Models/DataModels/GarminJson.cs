@@ -205,7 +205,7 @@ public class ChartAvailability
 public class DeviceMetaDataDto
 {
     [JsonPropertyName("deviceId")]
-    public string DeviceId { get; set; }
+    public string? DeviceId { get; set; }
 
     [JsonPropertyName("deviceTypePk")]
     public long DeviceTypePk { get; set; }

@@ -48,7 +48,7 @@ public class Aggregates
     public double DistanceTotal { get; set; }
 
     [JsonPropertyName("steps_total")]
-    public long StepsTotal { get; set; }
+    public double StepsTotal { get; set; }
 
     [JsonPropertyName("elapsed_time_total")]
     public long ElapsedTimeTotal { get; set; }

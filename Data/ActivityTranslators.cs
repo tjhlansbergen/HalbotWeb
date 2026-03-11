@@ -1,15 +1,21 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public static class ActivityTranslators
 {
+    private static readonly JsonSerializerOptions DeserializeOptions = new()
+    {
+        NumberHandling = JsonNumberHandling.AllowReadingFromString
+    };
+
     public static List<HalbotActivity> Parse(IEnumerable<ActivityRecord> records)
     {
         var result = new List<HalbotActivity>();
 
-        result.AddRange(ParseClassicJson(records.Where(r => r.DataType == ActivityDataType.Classic)));
-        result.AddRange(ParseTomTomJson(records.Where(r => r.DataType == ActivityDataType.TomTom)));
-        result.AddRange(ParseGarminJson(records.Where(r => r.DataType == ActivityDataType.Garmin)));
+        result.AddRange(ParseClassicJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.Classic)));
+        result.AddRange(ParseTomTomJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.TomTom)));
+        result.AddRange(ParseGarminJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.Garmin)));
 
         return result;
     }
@@ -21,13 +27,13 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if (record.DataType != ActivityDataType.Garmin)
+            if ((ActivityDataType)record.DataType != ActivityDataType.Garmin)
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
             }
 
-            var garminActivity = JsonSerializer.Deserialize<GarminJson>(record.SerializedData);
+            var garminActivity = JsonSerializer.Deserialize<GarminJson>(record.SerializedData, DeserializeOptions);
 
             if (garminActivity == null)
             {
@@ -39,8 +45,8 @@ public static class ActivityTranslators
             {
                 Id = record.Id,
                 Description = record.Description,
-                IsRace = record.IsRace,
-                DataType = record.DataType,
+                IsRace = Convert.ToBoolean(record.IsRace),
+                DataType = (ActivityDataType)record.DataType,
                 Journal = record.Gpx,    // todo yes, this is a hack
 
                 Climb = garminActivity.SummaryDto.ElevationGain,
@@ -73,13 +79,13 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if (record.DataType != ActivityDataType.TomTom)
+            if ((ActivityDataType)record.DataType != ActivityDataType.TomTom)
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
             }
 
-            var tomTomActivity = JsonSerializer.Deserialize<TomTomJson>(record.SerializedData);
+            var tomTomActivity = JsonSerializer.Deserialize<TomTomJson>(record.SerializedData, DeserializeOptions);
 
             if (tomTomActivity == null)
             {
@@ -91,8 +97,8 @@ public static class ActivityTranslators
             {
                 Id = record.Id,
                 Description = record.Description,
-                IsRace = record.IsRace,
-                DataType = record.DataType,
+                IsRace = Convert.ToBoolean(record.IsRace),
+                DataType = (ActivityDataType)record.DataType,
                 Journal = record.Gpx,    // yes, this is a hack
 
                 Climb = tomTomActivity.Aggregates.ClimbTotal,
@@ -120,14 +126,14 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if (record.DataType != ActivityDataType.Classic)
+            if ((ActivityDataType)record.DataType != ActivityDataType.Classic)
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
             }
 
             // valid data type, start parsing
-            var classicActivity = JsonSerializer.Deserialize<ClassicJson>(record.SerializedData);
+            var classicActivity = JsonSerializer.Deserialize<ClassicJson>(record.SerializedData, DeserializeOptions);
 
             if (classicActivity == null)
             {
@@ -139,8 +145,8 @@ public static class ActivityTranslators
             {
                 Id = record.Id,
                 Description = record.Description,
-                IsRace = record.IsRace,
-                DataType = record.DataType,
+                IsRace = Convert.ToBoolean(record.IsRace),
+                DataType = (ActivityDataType)record.DataType,
                 Journal = record.Gpx,    // yes, this is a hack
 
                 Date = classicActivity.StartDatetime.DateTime,

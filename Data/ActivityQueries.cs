@@ -34,12 +34,3 @@ public class ActivityQueries
         return await conn.ExecuteScalarAsync<long>(sql);
     }
 }
-
-public record ActivityRecord(
-    long Id,
-    ActivityDataType DataType,
-    string SerializedData,
-    string? Description,
-    bool IsRace,
-    string? Gpx
-);
