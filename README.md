@@ -3,5 +3,6 @@ Fitness activity tracker revisited
 
 # Todo
 - Remaining endpoints
-- Caching
 - Validation (fluent?)
+- Fix database column name(s)
+- Setup logging

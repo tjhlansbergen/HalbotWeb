@@ -1,16 +1,24 @@
 @HalbotWeb_HostAddress = http://localhost:5100
 
-GET {{HalbotWeb_HostAddress}}/api/activities/
-Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc3MzI1Nzg2NiwiaXNzIjoiSGFsYm90V2ViIiwiYXVkIjoiSGFsYm90V2ViVXNlcnMifQ.EpQZ-XqRhoy_VA-WKNrUvot-xVvL3jLLmuryqMy_axY
-
 ###
-
+# @name postLogin
 POST {{HalbotWeb_HostAddress}}/api/login
 Accept: application/json
 Content-Type: application/json
 
-{"username":"admin","password":"password"}
+{
+    "username":"admin",
+    "password":"password"
+}
+
+###
+@token = {{postLogin.response.body.token}}
+
+###
+
+GET {{HalbotWeb_HostAddress}}/api/activities/
+Accept: application/json
+Authorization: Bearer {{ token }}
 
 ###
 
