@@ -48,23 +48,26 @@ public static class ActivityTranslators
                 IsRace = Convert.ToBoolean(record.IsRace),
                 DataType = (ActivityDataType)record.DataType,
                 Journal = record.Gpx,    // todo yes, this is a hack
-
-                Climb = garminActivity.SummaryDto.ElevationGain,
-                Descent = garminActivity.SummaryDto.ElevationLoss,
-                MaxElevation = garminActivity.SummaryDto.MaxElevation,
-                MinElevation = garminActivity.SummaryDto.MinElevation,
-                Date = garminActivity.SummaryDto.StartTimeLocal.DateTime,
-                Distance = garminActivity.SummaryDto.Distance,
-                Duration = garminActivity.SummaryDto.Duration,
-                Heartrate = garminActivity.SummaryDto.AverageHr,
-                Lat = (garminActivity.SummaryDto.StartLatitude + garminActivity.SummaryDto.EndLatitude) / 2,
-                Lng = (garminActivity.SummaryDto.StartLongitude + garminActivity.SummaryDto.EndLongitude) / 2,
-                Speed = garminActivity.SummaryDto.AverageSpeed,
-                Cadence = garminActivity.SummaryDto.AverageRunCadence,
-                TrainingEffect = garminActivity.SummaryDto.TrainingEffect,
-                AnaerobicTrainingEffect = garminActivity.SummaryDto.AnaerobicTrainingEffect,
-                Url = new Uri($"https://connect.garmin.com/modern/activity/{garminActivity.ActivityId}")
             };
+
+            if (garminActivity.SummaryDto != null)
+            {
+                halbotActivity.Climb = garminActivity.SummaryDto.ElevationGain;
+                halbotActivity.Descent = garminActivity.SummaryDto.ElevationLoss;
+                halbotActivity.MaxElevation = garminActivity.SummaryDto.MaxElevation;
+                halbotActivity.MinElevation = garminActivity.SummaryDto.MinElevation;
+                halbotActivity.Date = garminActivity.SummaryDto.StartTimeLocal.DateTime;
+                halbotActivity.Distance = garminActivity.SummaryDto.Distance;
+                halbotActivity.Duration = garminActivity.SummaryDto.Duration;
+                halbotActivity.Heartrate = garminActivity.SummaryDto.AverageHr;
+                halbotActivity.Lat = (garminActivity.SummaryDto.StartLatitude + garminActivity.SummaryDto.EndLatitude) / 2;
+                halbotActivity.Lng = (garminActivity.SummaryDto.StartLongitude + garminActivity.SummaryDto.EndLongitude) / 2;
+                halbotActivity.Speed = garminActivity.SummaryDto.AverageSpeed;
+                halbotActivity.Cadence = garminActivity.SummaryDto.AverageRunCadence;
+                halbotActivity.TrainingEffect = garminActivity.SummaryDto.TrainingEffect;
+                halbotActivity.AnaerobicTrainingEffect = garminActivity.SummaryDto.AnaerobicTrainingEffect;
+                halbotActivity.Url = new Uri($"https://connect.garmin.com/modern/activity/{garminActivity.ActivityId}");
+            }
 
             result.Add(halbotActivity);
         }
@@ -100,18 +103,27 @@ public static class ActivityTranslators
                 IsRace = Convert.ToBoolean(record.IsRace),
                 DataType = (ActivityDataType)record.DataType,
                 Journal = record.Gpx,    // yes, this is a hack
-
-                Climb = tomTomActivity.Aggregates.ClimbTotal,
-                Descent = tomTomActivity.Aggregates.DescentTotal,
-                Date = tomTomActivity.StartDatetimeUser.DateTime,
-                Distance = tomTomActivity.Aggregates.DistanceTotal,
-                Duration = tomTomActivity.Aggregates.ActiveTimeTotal,
-                Heartrate = tomTomActivity.Aggregates.HeartrateAvg,
-                Lat = (tomTomActivity.BoundingBox.NorthEast.Lat + tomTomActivity.BoundingBox.SouthWest.Lat) / 2,
-                Lng = (tomTomActivity.BoundingBox.NorthEast.Lng + tomTomActivity.BoundingBox.SouthWest.Lng) / 2,
-                Speed = tomTomActivity.Aggregates.SpeedAvg,
-                Url = tomTomActivity.Links.Self
             };
+
+            if (tomTomActivity.Aggregates != null)
+            {
+                
+                halbotActivity.Climb = tomTomActivity.Aggregates.ClimbTotal;
+                halbotActivity.Descent = tomTomActivity.Aggregates.DescentTotal;
+                halbotActivity.Date = tomTomActivity.StartDatetimeUser.DateTime;
+                halbotActivity.Distance = tomTomActivity.Aggregates.DistanceTotal;
+                halbotActivity.Duration = tomTomActivity.Aggregates.ActiveTimeTotal;
+                halbotActivity.Heartrate = tomTomActivity.Aggregates.HeartrateAvg;
+                halbotActivity.Speed = tomTomActivity.Aggregates.SpeedAvg;
+            }
+
+            if (tomTomActivity.BoundingBox?.NorthEast != null && tomTomActivity.BoundingBox.SouthWest != null)
+            {
+                halbotActivity.Lat = (tomTomActivity.BoundingBox.NorthEast.Lat + tomTomActivity.BoundingBox.SouthWest.Lat) / 2;
+                halbotActivity.Lng = (tomTomActivity.BoundingBox.NorthEast.Lng + tomTomActivity.BoundingBox.SouthWest.Lng) / 2;
+            }
+
+            halbotActivity.Url = tomTomActivity.Links?.Self;
 
             result.Add(halbotActivity);
         }

@@ -6,10 +6,10 @@ public class GarminJson
     public long ActivityId { get; set; }
 
     [JsonPropertyName("activityUUID")]
-    public ActivityUuid ActivityUuid { get; set; }
+    public ActivityUuid? ActivityUuid { get; set; }
 
     [JsonPropertyName("activityName")]
-    public string ActivityName { get; set; }
+    public string? ActivityName { get; set; }
 
     [JsonPropertyName("userProfileId")]
     public long UserProfileId { get; set; }
@@ -18,25 +18,25 @@ public class GarminJson
     public bool IsMultiSportParent { get; set; }
 
     [JsonPropertyName("activityTypeDTO")]
-    public TypeDto ActivityTypeDto { get; set; }
+    public TypeDto? ActivityTypeDto { get; set; }
 
     [JsonPropertyName("eventTypeDTO")]
-    public TypeDto EventTypeDto { get; set; }
+    public TypeDto? EventTypeDto { get; set; }
 
     [JsonPropertyName("accessControlRuleDTO")]
-    public AccessControlRuleDto AccessControlRuleDto { get; set; }
+    public AccessControlRuleDto? AccessControlRuleDto { get; set; }
 
     [JsonPropertyName("timeZoneUnitDTO")]
-    public TimeZoneUnitDto TimeZoneUnitDto { get; set; }
+    public TimeZoneUnitDto? TimeZoneUnitDto { get; set; }
 
     [JsonPropertyName("metadataDTO")]
-    public MetadataDto MetadataDto { get; set; }
+    public MetadataDto? MetadataDto { get; set; }
 
     [JsonPropertyName("summaryDTO")]
-    public SummaryDto SummaryDto { get; set; }
+    public SummaryDto? SummaryDto { get; set; }
 
     [JsonPropertyName("locationName")]
-    public string LocationName { get; set; }
+    public string? LocationName { get; set; }
 }
 
 public class AccessControlRuleDto
@@ -45,7 +45,7 @@ public class AccessControlRuleDto
     public long TypeId { get; set; }
 
     [JsonPropertyName("typeKey")]
-    public string TypeKey { get; set; }
+    public string? TypeKey { get; set; }
 }
 
 public class TypeDto
@@ -54,7 +54,7 @@ public class TypeDto
     public long TypeId { get; set; }
 
     [JsonPropertyName("typeKey")]
-    public string TypeKey { get; set; }
+    public string? TypeKey { get; set; }
 
     [JsonPropertyName("parentTypeId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -79,13 +79,13 @@ public class MetadataDto
     public long DeviceApplicationInstallationId { get; set; }
 
     [JsonPropertyName("agentApplicationInstallationId")]
-    public object AgentApplicationInstallationId { get; set; }
+    public object? AgentApplicationInstallationId { get; set; }
 
     [JsonPropertyName("agentString")]
-    public object AgentString { get; set; }
+    public object? AgentString { get; set; }
 
     [JsonPropertyName("fileFormat")]
-    public FileFormat FileFormat { get; set; }
+    public FileFormat? FileFormat { get; set; }
 
     [JsonPropertyName("associatedCourseId")]
     public long? AssociatedCourseId { get; set; }
@@ -97,7 +97,7 @@ public class MetadataDto
     public DateTimeOffset UploadedDate { get; set; }
 
     [JsonPropertyName("videoUrl")]
-    public object VideoUrl { get; set; }
+    public object? VideoUrl { get; set; }
 
     [JsonPropertyName("hasPolyline")]
     public bool HasPolyline { get; set; }
@@ -112,40 +112,40 @@ public class MetadataDto
     public bool HasPowerTimeInZones { get; set; }
 
     [JsonPropertyName("userInfoDto")]
-    public UserInfoDto UserInfoDto { get; set; }
+    public UserInfoDto? UserInfoDto { get; set; }
 
     [JsonPropertyName("chartAvailability")]
-    public ChartAvailability ChartAvailability { get; set; }
+    public ChartAvailability? ChartAvailability { get; set; }
 
     [JsonPropertyName("childIds")]
-    public object[] ChildIds { get; set; }
+    public object[]? ChildIds { get; set; }
 
     [JsonPropertyName("childActivityTypes")]
-    public object[] ChildActivityTypes { get; set; }
+    public object[]? ChildActivityTypes { get; set; }
 
     [JsonPropertyName("sensors")]
-    public Sensor[] Sensors { get; set; }
+    public Sensor[]? Sensors { get; set; }
 
     [JsonPropertyName("activityImages")]
-    public object[] ActivityImages { get; set; }
+    public object[]? ActivityImages { get; set; }
 
     [JsonPropertyName("manufacturer")]
-    public string Manufacturer { get; set; }
+    public string? Manufacturer { get; set; }
 
     [JsonPropertyName("diveNumber")]
-    public object DiveNumber { get; set; }
+    public object? DiveNumber { get; set; }
 
     [JsonPropertyName("lapCount")]
     public long LapCount { get; set; }
 
     [JsonPropertyName("associatedWorkoutId")]
-    public object AssociatedWorkoutId { get; set; }
+    public object? AssociatedWorkoutId { get; set; }
 
     [JsonPropertyName("isAtpActivity")]
-    public object IsAtpActivity { get; set; }
+    public object? IsAtpActivity { get; set; }
 
     [JsonPropertyName("deviceMetaDataDTO")]
-    public DeviceMetaDataDto DeviceMetaDataDto { get; set; }
+    public DeviceMetaDataDto? DeviceMetaDataDto { get; set; }
 
     [JsonPropertyName("hasIntensityIntervals")]
     public bool HasIntensityIntervals { get; set; }
@@ -220,21 +220,21 @@ public class FileFormat
     public long FormatId { get; set; }
 
     [JsonPropertyName("formatKey")]
-    public string FormatKey { get; set; }
+    public string? FormatKey { get; set; }
 }
 
 public class Sensor
 {
     [JsonPropertyName("sku")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Sku { get; set; }
+    public string? Sku { get; set; }
 
     [JsonPropertyName("softwareVersion")]
     public double SoftwareVersion { get; set; }
 
     [JsonPropertyName("localDeviceType")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string LocalDeviceType { get; set; }
+    public string? LocalDeviceType { get; set; }
 }
 
 public class UserInfoDto
@@ -246,16 +246,16 @@ public class UserInfoDto
     public Guid Displayname { get; set; }
 
     [JsonPropertyName("fullname")]
-    public string Fullname { get; set; }
+    public string? Fullname { get; set; }
 
     [JsonPropertyName("profileImageUrlLarge")]
-    public object ProfileImageUrlLarge { get; set; }
+    public object? ProfileImageUrlLarge { get; set; }
 
     [JsonPropertyName("profileImageUrlMedium")]
-    public Uri ProfileImageUrlMedium { get; set; }
+    public Uri? ProfileImageUrlMedium { get; set; }
 
     [JsonPropertyName("profileImageUrlSmall")]
-    public Uri ProfileImageUrlSmall { get; set; }
+    public Uri? ProfileImageUrlSmall { get; set; }
 
     [JsonPropertyName("userPro")]
     public bool UserPro { get; set; }
@@ -330,10 +330,10 @@ public class SummaryDto
     public double AnaerobicTrainingEffect { get; set; }
 
     [JsonPropertyName("aerobicTrainingEffectMessage")]
-    public string AerobicTrainingEffectMessage { get; set; }
+    public string? AerobicTrainingEffectMessage { get; set; }
 
     [JsonPropertyName("anaerobicTrainingEffectMessage")]
-    public string AnaerobicTrainingEffectMessage { get; set; }
+    public string? AnaerobicTrainingEffectMessage { get; set; }
 
     [JsonPropertyName("endLatitude")]
     public double EndLatitude { get; set; }
@@ -357,11 +357,11 @@ public class TimeZoneUnitDto
     public long UnitId { get; set; }
 
     [JsonPropertyName("unitKey")]
-    public string UnitKey { get; set; }
+    public string? UnitKey { get; set; }
 
     [JsonPropertyName("factor")]
-    public long Factor { get; set; }
+    public double Factor { get; set; }
 
     [JsonPropertyName("timeZone")]
-    public string TimeZone { get; set; }
+    public string? TimeZone { get; set; }
 }

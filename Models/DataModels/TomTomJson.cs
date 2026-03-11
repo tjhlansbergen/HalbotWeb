@@ -15,7 +15,7 @@ public class TomTomJson
     public DateTimeOffset StartDatetimeUser { get; set; }
 
     [JsonPropertyName("user")]
-    public User User { get; set; }
+    public User? User { get; set; }
 
     [JsonPropertyName("activity_type_id_tt")]
     public long ActivityTypeIdTt { get; set; }
@@ -24,19 +24,19 @@ public class TomTomJson
     public long DisplayOffsetSeconds { get; set; }
 
     [JsonPropertyName("links")]
-    public Links Links { get; set; }
+    public Links? Links { get; set; }
 
     [JsonPropertyName("formats")]
-    public string[] Formats { get; set; }
+    public string[]? Formats { get; set; }
 
     [JsonPropertyName("zones")]
-    public long[] Zones { get; set; }
+    public long[]? Zones { get; set; }
 
     [JsonPropertyName("bounding_box")]
-    public BoundingBox BoundingBox { get; set; }
+    public BoundingBox? BoundingBox { get; set; }
 
     [JsonPropertyName("aggregates")]
-    public Aggregates Aggregates { get; set; }
+    public Aggregates? Aggregates { get; set; }
 }
 
 public class Aggregates
@@ -51,10 +51,10 @@ public class Aggregates
     public double StepsTotal { get; set; }
 
     [JsonPropertyName("elapsed_time_total")]
-    public long ElapsedTimeTotal { get; set; }
+    public double ElapsedTimeTotal { get; set; }
 
     [JsonPropertyName("metabolic_energy_total")]
-    public long MetabolicEnergyTotal { get; set; }
+    public double MetabolicEnergyTotal { get; set; }
 
     [JsonPropertyName("speed_avg")]
     public double SpeedAvg { get; set; }
@@ -69,13 +69,13 @@ public class Aggregates
     public double HeartrateAvg { get; set; }
 
     [JsonPropertyName("hrz_dist")]
-    public long[] HrzDist { get; set; }
+    public long[]? HrzDist { get; set; }
 
     [JsonPropertyName("hrz_none")]
     public long HrzNone { get; set; }
 
     [JsonPropertyName("moving_time_total")]
-    public long MovingTimeTotal { get; set; }
+    public double MovingTimeTotal { get; set; }
 
     [JsonPropertyName("moving_speed_avg")]
     public double MovingSpeedAvg { get; set; }
@@ -84,10 +84,10 @@ public class Aggregates
 public partial class BoundingBox
 {
     [JsonPropertyName("north_east")]
-    public NorthEast NorthEast { get; set; }
+    public NorthEast? NorthEast { get; set; }
 
     [JsonPropertyName("south_west")]
-    public NorthEast SouthWest { get; set; }
+    public NorthEast? SouthWest { get; set; }
 }
 
 public partial class NorthEast
@@ -102,58 +102,58 @@ public partial class NorthEast
 public partial class Links
 {
     [JsonPropertyName("image")]
-    public Uri Image { get; set; }
+    public Uri? Image { get; set; }
 
     [JsonPropertyName("webview")]
-    public string Webview { get; set; }
+    public string? Webview { get; set; }
 
     [JsonPropertyName("convert_to_trail")]
-    public Uri ConvertToTrail { get; set; }
+    public Uri? ConvertToTrail { get; set; }
 
     [JsonPropertyName("self")]
-    public Uri Self { get; set; }
+    public Uri? Self { get; set; }
 }
 
 public partial class User
 {
     [JsonPropertyName("devices")]
-    public object[] Devices { get; set; }
+    public object[]? Devices { get; set; }
 
     [JsonPropertyName("first_name")]
-    public string FirstName { get; set; }
+    public string? FirstName { get; set; }
 
     [JsonPropertyName("last_name")]
-    public string LastName { get; set; }
+    public string? LastName { get; set; }
 
     [JsonPropertyName("locale")]
-    public string Locale { get; set; }
+    public string? Locale { get; set; }
 
     [JsonPropertyName("traits")]
-    public object[] Traits { get; set; }
+    public object[]? Traits { get; set; }
 
     [JsonPropertyName("user_prefs")]
-    public UserPrefs UserPrefs { get; set; }
+    public UserPrefs? UserPrefs { get; set; }
 }
 
 public class UserPrefs
 {
     [JsonPropertyName("default")]
-    public Default Default { get; set; }
+    public Default? Default { get; set; }
 
     [JsonPropertyName("overrides")]
-    public Overrides Overrides { get; set; }
+    public Overrides? Overrides { get; set; }
 
     [JsonPropertyName("clock")]
-    public string Clock { get; set; }
+    public string? Clock { get; set; }
 
     [JsonPropertyName("date")]
-    public string Date { get; set; }
+    public string? Date { get; set; }
 
     [JsonPropertyName("wrist")]
-    public string Wrist { get; set; }
+    public string? Wrist { get; set; }
 
     [JsonPropertyName("auto_pauses_enabled")]
-    public AutoPausesEnabled AutoPausesEnabled { get; set; }
+    public AutoPausesEnabled? AutoPausesEnabled { get; set; }
 }
 
 public class AutoPausesEnabled
@@ -183,10 +183,10 @@ public class AutoPausesEnabled
 public class Default
 {
     [JsonPropertyName("distance")]
-    public string Distance { get; set; }
+    public string? Distance { get; set; }
 
     [JsonPropertyName("energy")]
-    public string Energy { get; set; }
+    public string? Energy { get; set; }
 }
 
 public partial class Overrides
