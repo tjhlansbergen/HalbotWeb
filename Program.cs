@@ -67,8 +67,13 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+builder.Services.AddScoped<LogQueries>();
 builder.Services.AddScoped<ActivityQueries>();
 builder.Services.AddScoped<ActivityCache>();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDbLogger();
 
 var app = builder.Build();
 app.UseHttpsRedirection();

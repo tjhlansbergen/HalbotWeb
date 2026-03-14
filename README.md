@@ -6,3 +6,4 @@ Fitness activity tracker revisited
 - Validation (fluent?)
 - Fix database column name(s)
 - Setup logging
+- Test cachings

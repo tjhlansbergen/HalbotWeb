@@ -12,7 +12,7 @@ public static class LoginEndpoints
         var jwtSettings = app.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
-        app.MapPost("/api/login", (HttpContext context, UserLogin login) =>
+        app.MapPost("/api/login", (HttpContext context, UserLogin login, ILogger<Program> logger) =>
         {
             if (login.Username != "admin" || login.Password != "password")
                 return Results.Unauthorized();
@@ -48,6 +48,8 @@ public static class LoginEndpoints
                         double.Parse(jwtSettings["ExpireMinutes"]!)
                     )
                 });
+
+            logger.LogInformation("User {Username} logged in successfully.", login.Username);
 
             // Also return token for API consumers
             return Results.Ok(new { token = tokenString });
