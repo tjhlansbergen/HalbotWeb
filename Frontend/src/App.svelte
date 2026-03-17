@@ -1,24 +1,30 @@
 <script>
   import { onMount } from "svelte";
 
-  let username = "";
+  let isLoggedIn = false;
+  let activities = [];
   let usernameInput = "";
   let passwordInput = "";
   let isCheckingAuth = true;
   let isSubmitting = false;
   let error = "";
 
-  async function getCurrentUser() {
-    const response = await fetch("/api/auth/me", {
+  async function fetchActivities() {
+    const response = await fetch("/api/activities/", {
       method: "GET",
       credentials: "include"
     });
 
-    if (!response.ok) {
-      return null;
+    if (response.status === 401) {
+      return { loggedIn: false, items: [] };
     }
 
-    return response.json();
+    if (!response.ok) {
+      throw new Error("Unexpected response while loading activities.");
+    }
+
+    const items = await response.json();
+    return { loggedIn: true, items: Array.isArray(items) ? items : [] };
   }
 
   async function checkAuth() {
@@ -26,10 +32,12 @@
     error = "";
 
     try {
-      const me = await getCurrentUser();
-      username = me?.username ?? "";
+      const result = await fetchActivities();
+      isLoggedIn = result.loggedIn;
+      activities = result.items;
     } catch {
-      username = "";
+      isLoggedIn = false;
+      activities = [];
       error = "Could not reach the server.";
     } finally {
       isCheckingAuth = false;
@@ -77,13 +85,45 @@
         method: "POST",
         credentials: "include"
       });
-      username = "";
+      isLoggedIn = false;
+      activities = [];
       passwordInput = "";
     } catch {
       error = "Could not reach the server.";
     } finally {
       isSubmitting = false;
     }
+  }
+
+  function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    }).format(date);
+  }
+
+  function formatDistance(value) {
+    if (typeof value !== "number") {
+      return "";
+    }
+
+    const kilometers = value / 1000;
+    return `${kilometers.toFixed(2).replace(".", ",")} km`;
+  }
+
+  function formatClimb(value) {
+    if (typeof value !== "number" || value <= 0) {
+      return "-";
+    }
+
+    return `${Math.round(value)}m`;
   }
 
   onMount(checkAuth);
@@ -95,11 +135,34 @@
       <h1>Halbot</h1>
       <p>Checking login status...</p>
     </section>
-  {:else if username}
+  {:else if isLoggedIn}
     <section class="card">
       <h1>Welcome</h1>
-      <p>You are logged in as <strong>{username}</strong>.</p>
+      <p>Logged in.</p>
       <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>distance</th>
+            <th>pace</th>
+            <th>climb</th>
+            <th>date</th>
+            <th>effort</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each activities as activity}
+            <tr>
+              <td>{formatDistance(activity.distance)}</td>
+              <td>{activity.pace}</td>
+              <td>{formatClimb(activity.climb)}</td>
+              <td>{formatDate(activity.date)}</td>
+              <td>{activity.effort}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </section>
   {:else}
     <section class="card">

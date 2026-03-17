@@ -60,11 +60,5 @@ public static class LoginEndpoints
             context.Response.Cookies.Delete("access_token");
             return Results.Ok();
         });
-
-        app.MapGet("/api/auth/me", (ClaimsPrincipal user) =>
-        {
-            var username = user.Identity?.Name ?? "unknown";
-            return Results.Ok(new { username });
-        }).RequireAuthorization();
     }
 }

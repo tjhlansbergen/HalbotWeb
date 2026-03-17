@@ -22,6 +22,7 @@ public static class ActivityEndpoints
     private static async Task<IResult> GetAll(ActivityCache activities)
     {
         var result = await activities.Get();
-        return Results.Ok(result);
+        var ordered = result.OrderByDescending(activity => activity.Date);
+        return Results.Ok(ordered);
     }
 }
