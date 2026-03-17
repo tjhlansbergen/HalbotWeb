@@ -14,13 +14,13 @@ public static class LoginEndpoints
 
         app.MapPost("/api/login", (HttpContext context, UserLogin login, ILogger<Program> logger) =>
         {
-            if (login.Username != "admin" || login.Password != "password")
+            if (login.Username != "username" || login.Password != "password")
                 return Results.Unauthorized();
 
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, login.Username),
-                new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Role, "User")
             };
 
             var token = new JwtSecurityToken(
@@ -51,8 +51,7 @@ public static class LoginEndpoints
 
             logger.LogInformation("User {Username} logged in successfully.", login.Username);
 
-            // Also return token for API consumers
-            return Results.Ok(new { token = tokenString });
+            return Results.Ok(new { username = login.Username });
         });
 
         // for cookie based auth (in the browser) only
@@ -61,5 +60,11 @@ public static class LoginEndpoints
             context.Response.Cookies.Delete("access_token");
             return Results.Ok();
         });
+
+        app.MapGet("/api/auth/me", (ClaimsPrincipal user) =>
+        {
+            var username = user.Identity?.Name ?? "unknown";
+            return Results.Ok(new { username });
+        }).RequireAuthorization();
     }
 }

@@ -29,28 +29,7 @@ builder.Services.AddAuthentication(options =>
     };
 
     options.Events = new JwtBearerEvents
-    {
-        // read token from httpOnly cookie, for VueJS
-        ////////////////////////////
-        /// for example:
-        /// 
-        /// await axios.post("https://localhost:5001/login",
-        ///   {
-        ///     username: "admin",
-        ///     password: "password"
-        ///   },
-        ///   {
-        ///     withCredentials: true // 🔥 important
-        ///   }
-        /// );
-        ///
-        /// const response = await axios.get(
-        ///   "https://localhost:5001/secure",
-        ///   {
-        ///     withCredentials: true
-        ///   }
-        /// );
-        ///  
+    { 
         OnMessageReceived = context =>
         {
             var cookieToken = context.Request.Cookies["access_token"];
@@ -77,11 +56,14 @@ builder.Logging.AddDbLogger();
 
 var app = builder.Build();
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapActivityEndpoints();
 app.MapLoginEndpoints();
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
