@@ -37,4 +37,21 @@ public class LogQueries
             logRecord.Message,
         });
     }
+
+    public async Task Rotate(int maxRecords)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            DELETE FROM LogRecords
+            WHERE rowid IN (
+                SELECT rowid
+                FROM LogRecords
+                ORDER BY DateTime DESC, rowid DESC
+                LIMIT -1 OFFSET @MaxRecords
+            )
+        """;
+
+        await conn.ExecuteAsync(sql, new { MaxRecords = maxRecords });
+    }
 }

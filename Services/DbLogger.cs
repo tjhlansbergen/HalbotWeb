@@ -55,22 +55,23 @@ public class DbLogger : ILogger
 
         var message = formatter(state, exception);
 
-        using (var scope = _services.CreateScope())
-        {
-            var writer = scope.ServiceProvider.GetRequiredService<LogQueries>();
-            writer.WriteAsync(
-                new LogRecord(
-                    DateTime.UtcNow,
-                    logLevel switch
-                    {
-                        LogLevel.Information => LogSeverityLevel.Info,
-                        LogLevel.Warning => LogSeverityLevel.Warning,
-                        LogLevel.Error => LogSeverityLevel.Error,
-                        _ => LogSeverityLevel.Info
-                    },
-                    message
-                )
-            ).GetAwaiter().GetResult();
-        }
+        using var scope = _services.CreateScope();
+        var writer = scope.ServiceProvider.GetRequiredService<LogQueries>();
+        
+        writer.WriteAsync(
+            new LogRecord(
+                DateTime.UtcNow,
+                logLevel switch
+                {
+                    LogLevel.Information => LogSeverityLevel.Info,
+                    LogLevel.Warning => LogSeverityLevel.Warning,
+                    LogLevel.Error => LogSeverityLevel.Error,
+                    _ => LogSeverityLevel.Info
+                },
+                message
+            )
+        ).GetAwaiter().GetResult();
+        
+        writer.Rotate(100).GetAwaiter().GetResult();
     }
 }
