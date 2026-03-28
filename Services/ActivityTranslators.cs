@@ -27,7 +27,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.Garmin)
+            if ((ActivityDataType)record.DataType != ActivityDataType.Garmin || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
@@ -82,7 +82,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.TomTom)
+            if ((ActivityDataType)record.DataType != ActivityDataType.TomTom || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
@@ -138,7 +138,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.Classic)
+            if ((ActivityDataType)record.DataType != ActivityDataType.Classic || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;

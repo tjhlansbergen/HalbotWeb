@@ -64,6 +64,8 @@ app.UseAuthorization();
 
 app.MapActivityEndpoints();
 app.MapLoginEndpoints();
+app.MapLogEndpoints();
+
 app.MapFallbackToFile("index.html");
 
 app.Run();

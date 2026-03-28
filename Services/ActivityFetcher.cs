@@ -27,14 +27,14 @@ public class ActivityFetcher
         };
 
 
-        return new ActivityRecord(
-            garminId,
-            (long)ActivityDataType.Garmin,
-            JsonSerializer.Serialize(garminActivity),
-            scraped.Title,
-            0,
-            string.Empty
-        );
+        return new ActivityRecord{
+            Id = garminId,
+            DataType = ActivityDataType.Garmin,
+            SerializedData = JsonSerializer.Serialize(garminActivity),
+            Description = scraped.Title,
+            IsRace = false,
+            Gpx = string.Empty
+        };
     }
 
     private static ScrapedGarminActivity scrapeGarminActivity(string content)

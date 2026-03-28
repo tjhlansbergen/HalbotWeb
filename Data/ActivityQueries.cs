@@ -28,7 +28,6 @@ public class ActivityQueries
         const string sql = """
             SELECT Id, DataType, SerializedData, Description, IsRace, Gpx
             FROM ActivityRecords
-            ORDER BY Id
         """;
 
         return await conn.QueryAsync<ActivityRecord>(sql);

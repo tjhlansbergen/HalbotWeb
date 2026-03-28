@@ -9,13 +9,14 @@ public class LogQueries
         _factory = factory;
     }
 
-    public async Task<IEnumerable<LogRecord>> ReadAllAsync()
+    public async Task<IEnumerable<LogRecord>> ReadAllOrderedAsync()
     {
         using var conn = _factory.CreateConnection();
 
         const string sql = """
             SELECT *
             FROM LogRecords
+            ORDER BY DateTime DESC
         """;
 
         return await conn.QueryAsync<LogRecord>(sql);

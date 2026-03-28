@@ -59,17 +59,18 @@ public class DbLogger : ILogger
         var writer = scope.ServiceProvider.GetRequiredService<LogQueries>();
         
         writer.WriteAsync(
-            new LogRecord(
-                DateTime.UtcNow,
-                logLevel switch
+            new LogRecord
+            {
+                DateTime = DateTime.UtcNow,
+                Severity = logLevel switch
                 {
                     LogLevel.Information => LogSeverityLevel.Info,
                     LogLevel.Warning => LogSeverityLevel.Warning,
                     LogLevel.Error => LogSeverityLevel.Error,
                     _ => LogSeverityLevel.Info
                 },
-                message
-            )
+                Message = message,
+            }
         ).GetAwaiter().GetResult();
         
         writer.Rotate(100).GetAwaiter().GetResult();
