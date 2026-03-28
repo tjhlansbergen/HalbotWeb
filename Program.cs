@@ -50,6 +50,8 @@ builder.Services.AddScoped<LogQueries>();
 builder.Services.AddScoped<ActivityQueries>();
 builder.Services.AddScoped<ActivityCache>();
 builder.Services.AddScoped<ActivityFetcher>();
+builder.Services.AddScoped<WorkoutQueries>();
+builder.Services.AddScoped<WorkoutCache>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -65,6 +67,7 @@ app.UseAuthorization();
 app.MapActivityEndpoints();
 app.MapLoginEndpoints();
 app.MapLogEndpoints();
+app.MapWorkoutEndpoints();
 
 app.MapFallbackToFile("index.html");
 
