@@ -1,0 +1,5 @@
+root = true
+
+[*.cs]
+# Suppress IDE0161 (namespace declaration style) warning
+dotnet_diagnostic.IDE0161.severity = none
