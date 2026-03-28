@@ -7,13 +7,19 @@ public static class ActivityEndpoints
         var group = app.MapGroup("/api/activities").RequireAuthorization();
 
         // GET /api/activities
-        group.MapGet("/", async ([FromServices] ActivityCache activities) => await GetAll(activities));
+        group.MapGet("/", async ([FromServices] ActivityCache activities) =>
+        await GetAll(activities));
 
         // GET /api/activities/{id}
         //
 
         // POST /api/activities
-        //
+        group.MapPost("/", async (
+            [FromServices] ActivityFetcher fetcher, 
+            [FromServices] ActivityQueries queries,
+            [FromServices] ActivityCache activities, 
+            long garminId
+            ) => await PostActivity(fetcher, queries, activities, garminId, app.Logger));
 
         // DELETE /api/activities/{id}
         // carefull here!
@@ -22,6 +28,29 @@ public static class ActivityEndpoints
     private static async Task<IResult> GetAll(ActivityCache activities)
     {
         var result = await activities.Get();
-        return Results.Ok(result);
+        var ordered = result.OrderByDescending(activity => activity.Date);
+        return Results.Ok(ordered);
+    }
+
+    private static async Task<IResult> PostActivity(ActivityFetcher fetcher, ActivityQueries queries, ActivityCache activities, long garminId, ILogger logger)
+    {
+        try
+        {
+            var activity = fetcher.Fetch(garminId);
+            queries.InsertAsync(activity).Wait();
+            activities.InvalidateCache();
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Added Garmin activity with ID {activity.Id}", activity.Id);
+            }
+
+            return Results.Created($"/api/activities/{activity.Id}", activity);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching activity with Garmin ID {garminId}", garminId);
+            return Results.Problem($"Error fetching activity with Garmin ID {garminId}: {ex.Message}");
+        }
     }
 }

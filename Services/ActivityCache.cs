@@ -1,5 +1,3 @@
-
-
 public class ActivityCache
 {
     private List<HalbotActivity> _activities = [];    
