@@ -58,10 +58,3 @@ public class HalbotActivity : IComparable<HalbotActivity>
         return $"{minutes}:{seconds:00}";
     }
 }
-
-public enum ActivityDataType 
-{ 
-    Classic, 
-    TomTom, 
-    Garmin 
-}
