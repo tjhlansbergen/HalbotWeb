@@ -7,15 +7,19 @@ public static class ActivityEndpoints
         var group = app.MapGroup("/api/activities").RequireAuthorization();
 
         // GET /api/activities
-        group.MapGet("/", async ([FromServices] ActivityCache activities) => 
+        group.MapGet("/", async ([FromServices] ActivityCache activities) =>
         await GetAll(activities));
 
         // GET /api/activities/{id}
         //
 
         // POST /api/activities
-        group.MapPost("/", async ([FromServices] ActivityCache activities, long garminId) => 
-        await PostActivity(garminId, app.Logger));
+        group.MapPost("/", async (
+            [FromServices] ActivityFetcher fetcher, 
+            [FromServices] ActivityQueries queries,
+            [FromServices] ActivityCache activities, 
+            long garminId
+            ) => await PostActivity(fetcher, queries, activities, garminId, app.Logger));
 
         // DELETE /api/activities/{id}
         // carefull here!
@@ -28,14 +32,25 @@ public static class ActivityEndpoints
         return Results.Ok(ordered);
     }
 
-    private static async Task<IResult> PostActivity(long garminId, ILogger logger)
+    private static async Task<IResult> PostActivity(ActivityFetcher fetcher, ActivityQueries queries, ActivityCache activities, long garminId, ILogger logger)
     {
-        //var activity = await activities.Add(garminId);
-        //return Results.Created($"/api/activities/{activity.Id}", activity);
-        if (logger.IsEnabled(LogLevel.Information))
+        try
         {
-            logger.LogInformation("Adding activity with Garmin ID {GarminId}", garminId);
+            var activity = fetcher.Fetch(garminId);
+            queries.InsertAsync(activity).Wait();
+            activities.InvalidateCache();
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Added Garmin activity with ID {activity.Id}", activity.Id);
+            }
+
+            return Results.Created($"/api/activities/{activity.Id}", activity);
         }
-        return Results.Created();
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching activity with Garmin ID {garminId}", garminId);
+            return Results.Problem($"Error fetching activity with Garmin ID {garminId}: {ex.Message}");
+        }
     }
 }

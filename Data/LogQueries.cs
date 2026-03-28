@@ -30,12 +30,7 @@ public class LogQueries
             VALUES (@DateTime, @Severity, @Message)
         """;
 
-        await conn.ExecuteAsync(sql, new
-        {
-            logRecord.DateTime,
-            logRecord.Severity,
-            logRecord.Message,
-        });
+        await conn.ExecuteAsync(sql, logRecord);
     }
 
     public async Task Rotate(int maxRecords)

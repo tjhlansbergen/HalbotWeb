@@ -49,6 +49,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddScoped<LogQueries>();
 builder.Services.AddScoped<ActivityQueries>();
 builder.Services.AddScoped<ActivityCache>();
+builder.Services.AddScoped<ActivityFetcher>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
