@@ -12,6 +12,7 @@
   let logs = [];
   let isLoadingLogs = false;
   let logsError = "";
+  const THEME_STORAGE_KEY = "halbot-theme";
   const currentYear = new Date().getFullYear();
   const LONG_MAX = 9223372036854775807n;
   const LOG_SEVERITY_LEVEL = Object.freeze({
@@ -327,6 +328,34 @@
     }
   }
 
+  function readStoredTheme() {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === "light" || storedTheme === "dark") {
+      return storedTheme;
+    }
+
+    return null;
+  }
+
+  function saveStoredTheme(theme) {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (theme === "light" || theme === "dark") {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    }
+  }
+
+  function toggleTheme() {
+    manualTheme = isDarkTheme ? "light" : "dark";
+    saveStoredTheme(manualTheme);
+  }
+
   const workoutMinuteOptions = Array.from({ length: 18 }, (_, i) => (i + 1) * 5);
 
   let showRunning = true;
@@ -342,6 +371,15 @@
   let workoutImportMessage = "";
   let runningImportError = "";
   let workoutImportError = "";
+  let prefersDark = typeof window !== "undefined"
+    ? window.matchMedia("(prefers-color-scheme: dark)").matches
+    : false;
+  let manualTheme = readStoredTheme();
+  $: resolvedTheme = manualTheme ?? (prefersDark ? "dark" : "light");
+  $: isDarkTheme = resolvedTheme === "dark";
+  $: if (typeof document !== "undefined") {
+    document.documentElement.dataset.theme = resolvedTheme;
+  }
   $: runningIdWarning = getRunningIdWarning(runningIdInput);
 
   $: rows = [
@@ -349,7 +387,29 @@
     ...(showStrength ? workouts.map(w => ({ type: "workout", date: w.date, data: w })) : [])
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  onMount(checkAuth);
+  onMount(() => {
+    checkAuth();
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    prefersDark = mediaQuery.matches;
+    manualTheme = readStoredTheme();
+
+    const onThemeChange = event => {
+      prefersDark = event.matches;
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", onThemeChange);
+      return () => mediaQuery.removeEventListener("change", onThemeChange);
+    }
+
+    mediaQuery.addListener(onThemeChange);
+    return () => mediaQuery.removeListener(onThemeChange);
+  });
 </script>
 
 <main>
@@ -366,7 +426,34 @@
           <button type="button" class="nav-btn" class:active={currentPage === "insights"} on:click={() => currentPage = "insights"}>Insights</button>
           <button type="button" class="nav-btn" class:active={currentPage === "import"} on:click={() => currentPage = "import"}>Import</button>
         </div>
-        <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+        <div class="header-actions">
+          <button
+            type="button"
+            class="theme-toggle-btn"
+            on:click={toggleTheme}
+            aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
+            title={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {#if isDarkTheme}
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="4.5"></circle>
+                <line x1="12" y1="2.5" x2="12" y2="5"></line>
+                <line x1="12" y1="19" x2="12" y2="21.5"></line>
+                <line x1="2.5" y1="12" x2="5" y2="12"></line>
+                <line x1="19" y1="12" x2="21.5" y2="12"></line>
+                <line x1="5.3" y1="5.3" x2="7.1" y2="7.1"></line>
+                <line x1="16.9" y1="16.9" x2="18.7" y2="18.7"></line>
+                <line x1="5.3" y1="18.7" x2="7.1" y2="16.9"></line>
+                <line x1="16.9" y1="7.1" x2="18.7" y2="5.3"></line>
+              </svg>
+            {:else}
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 14.1A8.4 8.4 0 0 1 9.9 4 8.8 8.8 0 1 0 20 14.1z"></path>
+              </svg>
+            {/if}
+          </button>
+          <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+        </div>
       </div>
 
       {#if currentPage === "home"}
