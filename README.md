@@ -1,6 +1,12 @@
 # HalbotWeb
 Fitness activity tracker revisited
 
+# Todo
+- Remaining endpoints
+- Fix database column name(s)
+- Test cachings
+- Verify logging in prod
+
 # Frontend (Svelte)
 - Source is in `Frontend`.
 - Production files are generated into `wwwroot` and served by ASP.NET Core.
@@ -38,11 +44,6 @@ This starts:
 - `dev: frontend` (`npm run dev` in `Frontend`)
 
 Use `Terminal` -> `Terminate Task...` to stop them.
-
-# Todo
-- Remaining endpoints
-- Fix database column name(s)
-- Test cachings
 
 
 ## Deploy to prod

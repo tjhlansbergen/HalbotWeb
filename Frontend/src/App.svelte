@@ -9,7 +9,16 @@
   let isCheckingAuth = true;
   let isSubmitting = false;
   let error = "";
+  let logs = [];
+  let isLoadingLogs = false;
+  let logsError = "";
+  const currentYear = new Date().getFullYear();
   const LONG_MAX = 9223372036854775807n;
+  const LOG_SEVERITY_LEVEL = Object.freeze({
+    0: "Info",
+    1: "Warning",
+    2: "Error"
+  });
 
   function getTodayDateInput() {
     const now = new Date();
@@ -114,6 +123,8 @@
       isLoggedIn = false;
       activities = [];
       workouts = [];
+      logs = [];
+      currentPage = "home";
       passwordInput = "";
     } catch {
       error = "Could not reach the server.";
@@ -134,6 +145,33 @@
       day: "numeric",
       year: "numeric"
     }).format(date);
+  }
+
+  function formatDateTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  }
+
+  function formatLogSeverity(value) {
+    if (typeof value === "number") {
+      return LOG_SEVERITY_LEVEL[value] ?? `Unknown (${value})`;
+    }
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      return trimmed || "Unknown";
+    }
+
+    return "Unknown";
   }
 
   function formatDistance(value) {
@@ -254,11 +292,46 @@
     }
   }
 
+  async function openLogsPage() {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    currentPage = "logs";
+    isLoadingLogs = true;
+    logsError = "";
+
+    try {
+      const response = await fetch("/api/logs/", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (response.status === 401) {
+        isLoggedIn = false;
+        logs = [];
+        currentPage = "home";
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Unexpected response while loading logs.");
+      }
+
+      const items = await response.json();
+      logs = Array.isArray(items) ? items : [];
+    } catch {
+      logsError = "Could not load logs.";
+    } finally {
+      isLoadingLogs = false;
+    }
+  }
+
   const workoutMinuteOptions = Array.from({ length: 18 }, (_, i) => (i + 1) * 5);
 
   let showRunning = true;
   let showStrength = true;
-  let currentPage = 'home';
+  let currentPage = "home";
   let runningIdInput = "";
   let runningDateInput = getTodayDateInput();
   let workoutMinutesInput = "20";
@@ -272,8 +345,8 @@
   $: runningIdWarning = getRunningIdWarning(runningIdInput);
 
   $: rows = [
-    ...(showRunning ? activities.map(a => ({ type: 'activity', date: a.date, data: a })) : []),
-    ...(showStrength ? workouts.map(w => ({ type: 'workout', date: w.date, data: w })) : [])
+    ...(showRunning ? activities.map(a => ({ type: "activity", date: a.date, data: a })) : []),
+    ...(showStrength ? workouts.map(w => ({ type: "workout", date: w.date, data: w })) : [])
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   onMount(checkAuth);
@@ -289,14 +362,14 @@
     <section class="card wide">
       <div class="card-header">
         <div class="nav-buttons">
-          <button type="button" class="nav-btn" class:active={currentPage === 'home'} on:click={() => currentPage = 'home'}>Home</button>
-          <button type="button" class="nav-btn" class:active={currentPage === 'insights'} on:click={() => currentPage = 'insights'}>Insights</button>
-          <button type="button" class="nav-btn" class:active={currentPage === 'import'} on:click={() => currentPage = 'import'}>Import</button>
+          <button type="button" class="nav-btn" class:active={currentPage === "home"} on:click={() => currentPage = "home"}>Home</button>
+          <button type="button" class="nav-btn" class:active={currentPage === "insights"} on:click={() => currentPage = "insights"}>Insights</button>
+          <button type="button" class="nav-btn" class:active={currentPage === "import"} on:click={() => currentPage = "import"}>Import</button>
         </div>
         <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
       </div>
 
-      {#if currentPage === 'home'}
+      {#if currentPage === "home"}
         <div class="filters">
           <label><input type="checkbox" bind:checked={showRunning} /> Running</label>
           <label><input type="checkbox" bind:checked={showStrength} /> Strength</label>
@@ -305,7 +378,7 @@
         <table>
           <tbody>
             {#each rows as row}
-              {#if row.type === 'activity'}
+              {#if row.type === "activity"}
                 <tr>
                   <td>{formatDistance(row.data.distance)}</td>
                   <td>{row.data.pace}</td>
@@ -325,9 +398,9 @@
             {/each}
           </tbody>
         </table>
-      {:else if currentPage === 'insights'}
+      {:else if currentPage === "insights"}
         <p>Insights page coming soon...</p>
-      {:else if currentPage === 'import'}
+      {:else if currentPage === "import"}
         <div class="import-grid">
           <section class="import-section">
             <h2>Running</h2>
@@ -395,6 +468,41 @@
             {/if}
           </section>
         </div>
+      {:else if currentPage === "logs"}
+        <section class="logs-section">
+          <hr class="logs-divider" />
+
+          {#if logsError}
+            <p class="inline-warning">{logsError}</p>
+          {:else if isLoadingLogs}
+            <p>Loading logs...</p>
+          {:else}
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th>Date/Time</th>
+                  <th>Severity</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#if logs.length === 0}
+                  <tr>
+                    <td colspan="3">No log entries found.</td>
+                  </tr>
+                {:else}
+                  {#each logs as logEntry}
+                    <tr>
+                      <td>{formatDateTime(logEntry.dateTime)}</td>
+                      <td>{formatLogSeverity(logEntry.severity)}</td>
+                      <td>{logEntry.message ?? "-"}</td>
+                    </tr>
+                  {/each}
+                {/if}
+              </tbody>
+            </table>
+          {/if}
+        </section>
       {/if}
     </section>
   {:else}
@@ -421,4 +529,10 @@
   {#if error}
     <p class="error">{error}</p>
   {/if}
+
+  <footer class="app-footer">
+    <span>&copy; {currentYear}</span>
+    <span aria-hidden="true"> | </span>
+    <button type="button" class="footer-link" on:click={openLogsPage}>View log</button>
+  </footer>
 </main>
