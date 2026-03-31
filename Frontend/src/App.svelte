@@ -452,7 +452,7 @@
               </svg>
             {/if}
           </button>
-          <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+          <button type="button" class="nav-btn logout-btn" on:click={logout} disabled={isSubmitting}>Logout</button>
         </div>
       </div>
 

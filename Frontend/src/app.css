@@ -152,6 +152,11 @@ main {
   color: var(--active-btn-text);
 }
 
+.logout-btn {
+  background: var(--active-btn-bg);
+  color: var(--active-btn-text);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
