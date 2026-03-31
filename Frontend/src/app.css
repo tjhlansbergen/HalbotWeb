@@ -139,3 +139,47 @@ table {
   font-weight: 600;
   cursor: pointer;
 }
+
+.import-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.import-section {
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.import-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.import-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+select {
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #959595;
+  background: #fff;
+}
+
+.inline-warning {
+  margin: 0;
+  color: #9f1f1f;
+  font-weight: 600;
+}
+
+.inline-success {
+  margin: 0.6rem 0 0;
+  color: #0f6a2f;
+  font-weight: 600;
+}
+

@@ -9,6 +9,13 @@
   let isCheckingAuth = true;
   let isSubmitting = false;
   let error = "";
+  const LONG_MAX = 9223372036854775807n;
+
+  function getTodayDateInput() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 10);
+  }
 
   async function fetchActivities() {
     const response = await fetch("/api/activities/", {
@@ -146,14 +153,128 @@
     return `${Math.round(value)}m`;
   }
 
-  $: rows = [
-    ...(showRunning ? activities.map(a => ({ type: 'activity', date: a.date, data: a })) : []),
-    ...(showStrength ? workouts.map(w => ({ type: 'workout', date: w.date, data: w })) : [])
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+  function getRunningIdWarning(value) {
+    const raw = String(value).trim();
+
+    if (!raw) {
+      return "";
+    }
+
+    if (!/^\d+$/.test(raw)) {
+      return "Running ID must be numeric only.";
+    }
+
+    try {
+      const numeric = BigInt(raw);
+      if (numeric < 1n || numeric > LONG_MAX) {
+        return "Running ID must be between 1 and 9223372036854775807.";
+      }
+    } catch {
+      return "Running ID is invalid.";
+    }
+
+    return "";
+  }
+
+  async function refreshLists() {
+    const result = await fetchActivities();
+    isLoggedIn = result.loggedIn;
+    activities = result.items;
+    workouts = result.loggedIn ? await fetchWorkouts() : [];
+  }
+
+  async function submitRunningImport(event) {
+    event.preventDefault();
+    runningImportMessage = "";
+    runningImportError = "";
+
+    if (runningIdWarning) {
+      runningImportError = runningIdWarning;
+      return;
+    }
+
+    isImportingRunning = true;
+
+    try {
+      const params = new URLSearchParams({
+        garminId: runningIdInput.trim(),
+        date: runningDateInput
+      });
+
+      const response = await fetch(`/api/activities/?${params.toString()}`, {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to import running activity.");
+      }
+
+      await refreshLists();
+      runningImportMessage = "Running activity imported.";
+      runningIdInput = "";
+      runningDateInput = getTodayDateInput();
+    } catch {
+      runningImportError = "Could not import running activity.";
+    } finally {
+      isImportingRunning = false;
+    }
+  }
+
+  async function submitWorkoutImport(event) {
+    event.preventDefault();
+    workoutImportMessage = "";
+    workoutImportError = "";
+    isImportingWorkout = true;
+
+    try {
+      const response = await fetch("/api/workouts/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          minutes: Number(workoutMinutesInput),
+          date: workoutDateInput
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to import strength workout.");
+      }
+
+      await refreshLists();
+      workoutImportMessage = "Strength workout imported.";
+      workoutDateInput = getTodayDateInput();
+    } catch {
+      workoutImportError = "Could not import strength workout.";
+    } finally {
+      isImportingWorkout = false;
+    }
+  }
+
+  const workoutMinuteOptions = Array.from({ length: 18 }, (_, i) => (i + 1) * 5);
 
   let showRunning = true;
   let showStrength = true;
   let currentPage = 'home';
+  let runningIdInput = "";
+  let runningDateInput = getTodayDateInput();
+  let workoutMinutesInput = "20";
+  let workoutDateInput = getTodayDateInput();
+  let isImportingRunning = false;
+  let isImportingWorkout = false;
+  let runningImportMessage = "";
+  let workoutImportMessage = "";
+  let runningImportError = "";
+  let workoutImportError = "";
+  $: runningIdWarning = getRunningIdWarning(runningIdInput);
+
+  $: rows = [
+    ...(showRunning ? activities.map(a => ({ type: 'activity', date: a.date, data: a })) : []),
+    ...(showStrength ? workouts.map(w => ({ type: 'workout', date: w.date, data: w })) : [])
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   onMount(checkAuth);
 </script>
@@ -207,7 +328,73 @@
       {:else if currentPage === 'insights'}
         <p>Insights page coming soon...</p>
       {:else if currentPage === 'import'}
-        <p>Import page coming soon...</p>
+        <div class="import-grid">
+          <section class="import-section">
+            <h2>Running</h2>
+            <form class="import-form" on:submit={submitRunningImport}>
+              <label>
+                Activity ID
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="e.g. 12341234123"
+                  bind:value={runningIdInput}
+                  required
+                />
+              </label>
+
+              {#if runningIdWarning}
+                <p class="inline-warning">{runningIdWarning}</p>
+              {/if}
+
+              <label>
+                Date
+                <input type="date" bind:value={runningDateInput} required />
+              </label>
+
+              <button type="submit" disabled={isImportingRunning || !runningIdInput.trim() || !!runningIdWarning}>
+                {#if isImportingRunning}Importing...{:else}Import{/if}
+              </button>
+            </form>
+
+            {#if runningImportError}
+              <p class="inline-warning">{runningImportError}</p>
+            {/if}
+            {#if runningImportMessage}
+              <p class="inline-success">{runningImportMessage}</p>
+            {/if}
+          </section>
+
+          <section class="import-section">
+            <h2>Strength</h2>
+            <form class="import-form" on:submit={submitWorkoutImport}>
+              <label>
+                Minutes
+                <select bind:value={workoutMinutesInput}>
+                  {#each workoutMinuteOptions as minutes}
+                    <option value={String(minutes)}>{minutes}</option>
+                  {/each}
+                </select>
+              </label>
+
+              <label>
+                Date
+                <input type="date" bind:value={workoutDateInput} required />
+              </label>
+
+              <button type="submit" disabled={isImportingWorkout}>
+                {#if isImportingWorkout}Importing...{:else}Import{/if}
+              </button>
+            </form>
+
+            {#if workoutImportError}
+              <p class="inline-warning">{workoutImportError}</p>
+            {/if}
+            {#if workoutImportMessage}
+              <p class="inline-success">{workoutImportMessage}</p>
+            {/if}
+          </section>
+        </div>
       {/if}
     </section>
   {:else}
