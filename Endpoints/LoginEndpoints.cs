@@ -11,10 +11,21 @@ public static class LoginEndpoints
     {
         var jwtSettings = app.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
+        var configuredUsername = app.Configuration["Login:Username"];
+        var configuredPassword = app.Configuration["Login:Password"];
 
         app.MapPost("/api/login", (HttpContext context, UserLogin login, ILogger<Program> logger) =>
         {
-            if (login.Username != "username" || login.Password != "password")
+            if (string.IsNullOrWhiteSpace(configuredUsername) || string.IsNullOrWhiteSpace(configuredPassword))
+            {
+                logger.LogError("Login credentials are not configured.");
+                return Results.Problem("Login credentials are not configured.", statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            var usernameMatches = string.Equals(login.Username, configuredUsername, StringComparison.OrdinalIgnoreCase);
+            var passwordMatches = string.Equals(login.Password, configuredPassword, StringComparison.Ordinal);
+
+            if (!usernameMatches || !passwordMatches)
                 return Results.Unauthorized();
 
             var claims = new[]
