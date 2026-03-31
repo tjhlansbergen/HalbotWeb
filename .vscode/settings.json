@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/8eac3e5c-8dfc-4d55-a014-f5e9f8b2f2d8/resourceGroups/HalbotWeb/providers/Microsoft.Web/sites/HalbotWeb",
+    "appService.deploySubpath": "publish"
+}

@@ -41,7 +41,37 @@ Use `Terminal` -> `Terminate Task...` to stop them.
 
 # Todo
 - Remaining endpoints
-- Validation (fluent?)
 - Fix database column name(s)
-- Setup logging
 - Test cachings
+
+
+## Deploy to prod
+
+This project is deployed as one ASP.NET Core app that serves:
+
+Backend API endpoints
+Built Svelte frontend static files from wwwroot
+1. Build frontend and publish backend
+From the repository root:
+
+```bash
+cd Frontend
+npm ci
+npm run build
+cd ..
+dotnet publish -c Release -o ./publish
+```
+
+What this does:
+
+npm run build writes frontend assets to wwwroot
+dotnet publish creates the deployable output in publish
+
+2. Deploy to App Service
+
+VS Code Azure App Service extension:
+Right-click the publish folder
+Choose "Deploy to Web App"
+Select the target App Service
+
+Want to deploy (overwrite) the database? Add it to the publish folder.
