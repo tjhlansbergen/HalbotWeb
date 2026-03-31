@@ -75,4 +75,4 @@ Right-click the publish folder
 Choose "Deploy to Web App"
 Select the target App Service
 
-Want to deploy (overwrite) the database? Add it to the publish folder.
+Want to deploy (overwrite) the database? Add it to the publish folder, and move it into c:\home\data in Azure (Konsole)
