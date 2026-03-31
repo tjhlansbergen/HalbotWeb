@@ -3,7 +3,7 @@ using System.Text.Json;
 
 public class ActivityFetcher
 {
-    public ActivityRecord Fetch(long garminId)
+    public ActivityRecord Fetch(long garminId, DateTime? overrideDate = null)
     {
         var content = new HttpClient().GetStringAsync($"https://connect.garmin.com/modern/activity/{garminId}").Result;
         var scraped = scrapeGarminActivity(content);
@@ -15,7 +15,7 @@ public class ActivityFetcher
             SummaryDto = new SummaryDto
             {
                 ElevationGain = scraped.Climb,
-                StartTimeLocal = scraped.Date,
+                StartTimeLocal = overrideDate ?? scraped.Date,
                 Distance = scraped.DistanceMeters,
                 Duration = scraped.DurationSeconds,
                 StartLatitude = scraped.Latitude,

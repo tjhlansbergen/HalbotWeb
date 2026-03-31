@@ -18,8 +18,9 @@ public static class ActivityEndpoints
             [FromServices] ActivityFetcher fetcher, 
             [FromServices] ActivityQueries queries,
             [FromServices] ActivityCache activities, 
-            long garminId
-            ) => await PostActivity(fetcher, queries, activities, garminId, app.Logger));
+            long garminId,
+            DateTime? date = null
+            ) => await PostActivity(fetcher, queries, activities, garminId, date, app.Logger));
 
         // DELETE /api/activities/{id}
         // carefull here!
@@ -32,11 +33,11 @@ public static class ActivityEndpoints
         return Results.Ok(ordered);
     }
 
-    private static async Task<IResult> PostActivity(ActivityFetcher fetcher, ActivityQueries queries, ActivityCache activities, long garminId, ILogger logger)
+    private static async Task<IResult> PostActivity(ActivityFetcher fetcher, ActivityQueries queries, ActivityCache activities, long garminId, DateTime? date, ILogger logger)
     {
         try
         {
-            var activity = fetcher.Fetch(garminId);
+            var activity = fetcher.Fetch(garminId, date);
             queries.InsertAsync(activity).Wait();
             activities.InvalidateCache();
 
