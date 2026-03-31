@@ -3,6 +3,7 @@
 
   let isLoggedIn = false;
   let activities = [];
+  let workouts = [];
   let usernameInput = "";
   let passwordInput = "";
   let isCheckingAuth = true;
@@ -27,6 +28,20 @@
     return { loggedIn: true, items: Array.isArray(items) ? items : [] };
   }
 
+  async function fetchWorkouts() {
+    try {
+      const response = await fetch("/api/workouts/", {
+        method: "GET",
+        credentials: "include"
+      });
+      if (!response.ok) return [];
+      const items = await response.json();
+      return Array.isArray(items) ? items : [];
+    } catch {
+      return [];
+    }
+  }
+
   async function checkAuth() {
     isCheckingAuth = true;
     error = "";
@@ -35,9 +50,13 @@
       const result = await fetchActivities();
       isLoggedIn = result.loggedIn;
       activities = result.items;
+      if (result.loggedIn) {
+        workouts = await fetchWorkouts();
+      }
     } catch {
       isLoggedIn = false;
       activities = [];
+      workouts = [];
       error = "Could not reach the server.";
     } finally {
       isCheckingAuth = false;
@@ -87,6 +106,7 @@
       });
       isLoggedIn = false;
       activities = [];
+      workouts = [];
       passwordInput = "";
     } catch {
       error = "Could not reach the server.";
@@ -126,6 +146,15 @@
     return `${Math.round(value)}m`;
   }
 
+  $: rows = [
+    ...(showRunning ? activities.map(a => ({ type: 'activity', date: a.date, data: a })) : []),
+    ...(showStrength ? workouts.map(w => ({ type: 'workout', date: w.date, data: w })) : [])
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  let showRunning = true;
+  let showStrength = true;
+  let currentPage = 'home';
+
   onMount(checkAuth);
 </script>
 
@@ -136,33 +165,50 @@
       <p>Checking login status...</p>
     </section>
   {:else if isLoggedIn}
-    <section class="card">
-      <h1>Welcome</h1>
-      <p>Logged in.</p>
-      <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+    <section class="card wide">
+      <div class="card-header">
+        <div class="nav-buttons">
+          <button type="button" class="nav-btn" class:active={currentPage === 'home'} on:click={() => currentPage = 'home'}>Home</button>
+          <button type="button" class="nav-btn" class:active={currentPage === 'insights'} on:click={() => currentPage = 'insights'}>Insights</button>
+          <button type="button" class="nav-btn" class:active={currentPage === 'import'} on:click={() => currentPage = 'import'}>Import</button>
+        </div>
+        <button type="button" on:click={logout} disabled={isSubmitting}>Logout</button>
+      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>distance</th>
-            <th>pace</th>
-            <th>climb</th>
-            <th>date</th>
-            <th>effort</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each activities as activity}
-            <tr>
-              <td>{formatDistance(activity.distance)}</td>
-              <td>{activity.pace}</td>
-              <td>{formatClimb(activity.climb)}</td>
-              <td>{formatDate(activity.date)}</td>
-              <td>{activity.effort}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+      {#if currentPage === 'home'}
+        <div class="filters">
+          <label><input type="checkbox" bind:checked={showRunning} /> Running</label>
+          <label><input type="checkbox" bind:checked={showStrength} /> Strength</label>
+        </div>
+
+        <table>
+          <tbody>
+            {#each rows as row}
+              {#if row.type === 'activity'}
+                <tr>
+                  <td>{formatDistance(row.data.distance)}</td>
+                  <td>{row.data.pace}</td>
+                  <td>{formatClimb(row.data.climb)}</td>
+                  <td>{formatDate(row.data.date)}</td>
+                  <td>{row.data.effort}</td>
+                </tr>
+              {:else}
+                <tr>
+                  <td>{row.data.minutes} min</td>
+                  <td>Strength</td>
+                  <td>-</td>
+                  <td>{formatDate(row.data.date)}</td>
+                  <td>-</td>
+                </tr>
+              {/if}
+            {/each}
+          </tbody>
+        </table>
+      {:else if currentPage === 'insights'}
+        <p>Insights page coming soon...</p>
+      {:else if currentPage === 'import'}
+        <p>Import page coming soon...</p>
+      {/if}
     </section>
   {:else}
     <section class="card">
