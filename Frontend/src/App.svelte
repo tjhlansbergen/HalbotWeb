@@ -189,7 +189,17 @@
       return "-";
     }
 
-    return `${Math.round(value)}m`;
+    return `${Math.round(value)}`;
+  }
+
+  function getRunBand(distanceMeters) {
+    const km = (distanceMeters ?? 0) / 1000;
+    if (km < 5)  return "run-xs";
+    if (km < 10) return "run-s";
+    if (km < 20) return "run-m";
+    if (km < 35) return "run-l";
+    if (km < 60) return "run-xl";
+    return "run-xxl";
   }
 
   function getRunningIdWarning(value) {
@@ -482,24 +492,24 @@
           <label><input type="checkbox" bind:checked={showStrength} /> Strength</label>
         </div>
 
-        <table>
+        <table class="home-table">
           <tbody>
             {#each rows as row}
               {#if row.type === "activity"}
-                <tr>
+                <tr class="data-row {getRunBand(row.data.distance)}">
                   <td>{formatDistance(row.data.distance)}</td>
-                  <td>{row.data.pace}</td>
-                  <td>{formatClimb(row.data.climb)}</td>
+                  <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="7"/><polyline points="12 10 12 14"/><path d="M10 3h4"/><line x1="12" y1="3" x2="12" y2="6"/></svg>{row.data.pace}</td>
+                  <td>{#if typeof row.data.climb === 'number' && row.data.climb > 0}<svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polyline points="2 20 12 4 22 20"/><line x1="2" y1="20" x2="22" y2="20"/><polyline points="9 13 12 9 15 13"/></svg>{/if}{formatClimb(row.data.climb)}</td>
                   <td>{formatDate(row.data.date)}</td>
                   <td>{row.data.effort}</td>
                 </tr>
               {:else}
-                <tr>
+                <tr class="data-row row-strength">
                   <td>{row.data.minutes} min</td>
-                  <td>Strength</td>
-                  <td>-</td>
+                  <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" y1="12" x2="18" y2="12"/><rect x="2" y="9.5" width="4" height="5" rx="1"/><rect x="18" y="9.5" width="4" height="5" rx="1"/><rect x="5" y="7.5" width="3" height="9" rx="1"/><rect x="16" y="7.5" width="3" height="9" rx="1"/></svg>strength</td>
+                  <td></td>
                   <td>{formatDate(row.data.date)}</td>
-                  <td>-</td>
+                  <td>{Math.ceil(row.data.minutes / 2)}</td>
                 </tr>
               {/if}
             {/each}
