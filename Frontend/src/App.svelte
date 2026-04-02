@@ -422,9 +422,24 @@
     <section class="card wide">
       <div class="card-header">
         <div class="nav-buttons">
-          <button type="button" class="nav-btn" class:active={currentPage === "home"} on:click={() => currentPage = "home"}>Home</button>
-          <button type="button" class="nav-btn" class:active={currentPage === "insights"} on:click={() => currentPage = "insights"}>Insights</button>
-          <button type="button" class="nav-btn" class:active={currentPage === "import"} on:click={() => currentPage = "import"}>Import</button>
+          <button type="button" class="nav-btn nav-btn-home" class:active={currentPage === "home"} on:click={() => currentPage = "home"} title="Home">
+            <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            <span class="nav-label">Home</span>
+          </button>
+          <button type="button" class="nav-btn nav-btn-insights" class:active={currentPage === "insights"} on:click={() => currentPage = "insights"} title="Insights">
+            <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/>
+            </svg>
+            <span class="nav-label">Insights</span>
+          </button>
+          <button type="button" class="nav-btn nav-btn-import" class:active={currentPage === "import"} on:click={() => currentPage = "import"} title="Import">
+            <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            <span class="nav-label">Import</span>
+          </button>
         </div>
         <div class="header-actions">
           <button
@@ -452,7 +467,12 @@
               </svg>
             {/if}
           </button>
-          <button type="button" class="nav-btn logout-btn" on:click={logout} disabled={isSubmitting}>Logout</button>
+          <button type="button" class="nav-btn nav-btn-logout" on:click={logout} disabled={isSubmitting} title="Logout">
+            <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+            <span class="nav-label">Logout</span>
+          </button>
         </div>
       </div>
 
@@ -512,7 +532,7 @@
                 <input type="date" bind:value={runningDateInput} required />
               </label>
 
-              <button type="submit" disabled={isImportingRunning || !runningIdInput.trim() || !!runningIdWarning}>
+              <button type="submit" class="import-btn" disabled={isImportingRunning || !runningIdInput.trim() || !!runningIdWarning}>
                 {#if isImportingRunning}Importing...{:else}Import{/if}
               </button>
             </form>
@@ -542,7 +562,7 @@
                 <input type="date" bind:value={workoutDateInput} required />
               </label>
 
-              <button type="submit" disabled={isImportingWorkout}>
+              <button type="submit" class="import-btn" disabled={isImportingWorkout}>
                 {#if isImportingWorkout}Importing...{:else}Import{/if}
               </button>
             </form>
@@ -617,9 +637,11 @@
     <p class="error">{error}</p>
   {/if}
 
-  <footer class="app-footer">
-    <span>&copy; {currentYear}</span>
-    <span aria-hidden="true"> | </span>
-    <button type="button" class="footer-link" on:click={openLogsPage}>View log</button>
-  </footer>
+  {#if isLoggedIn}
+    <footer class="app-footer">
+      <span>&copy; {currentYear}</span>
+      <span aria-hidden="true"> | </span>
+      <button type="button" class="footer-link" on:click={openLogsPage}>View log</button>
+    </footer>
+  {/if}
 </main>

@@ -7,6 +7,9 @@ Fitness activity tracker revisited
 - Test cachings
 - Verify logging in prod
 
+# Palatte
+{"Charcoal Blue":"264653","Verdigris":"2a9d8f","Tuscan Sun":"e9c46a","Sandy Brown":"f4a261","Burnt Peach":"e76f51"}
+
 # Frontend (Svelte)
 - Source is in `Frontend`.
 - Production files are generated into `wwwroot` and served by ASP.NET Core.

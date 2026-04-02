@@ -140,7 +140,10 @@ main {
   font-weight: 600;
   cursor: pointer;
   font-size: 0.95rem;
-  transition: background 0.2s;
+  transition: background 0.2s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .nav-btn:hover {
@@ -152,9 +155,85 @@ main {
   color: var(--active-btn-text);
 }
 
-.logout-btn {
-  background: var(--active-btn-bg);
-  color: var(--active-btn-text);
+.nav-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+}
+
+.nav-btn-home {
+  background: #2a9d8f;
+  color: white;
+}
+
+.nav-btn-home:hover {
+  background: #228376;
+}
+
+.nav-btn-home.active {
+  background: #2a9d8f;
+  color: white;
+}
+
+.nav-btn-insights {
+  background: #dbb649;
+  color: white;
+}
+
+.nav-btn-insights:hover {
+  background: #e9c46a;
+}
+
+.nav-btn-insights.active {
+  background: #dbb649;
+  color: #fff;
+}
+
+.nav-btn-import {
+  background: #e08b47;
+  color: white;
+}
+
+.nav-btn-import:hover {
+  background: #f4a261;
+}
+
+.nav-btn-import.active {
+  background: #e08b47;
+  color: white;
+}
+
+.nav-btn-logout {
+  background: #e76f51;
+  color: white;
+}
+
+.nav-btn-logout:hover {
+  background: #d95c38;
+}
+
+.nav-btn-logout.active {
+  background: #c74a21;
+  color: white;
+}
+
+.import-btn {
+  background: #e08b47;
+  color: white;
+}
+
+.import-btn:hover {
+  background: #f4a261;
+}
+
+.import-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .header-actions {
@@ -227,15 +306,15 @@ button {
   border: 0;
   border-radius: 8px;
   padding: 0.65rem 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   background: var(--active-btn-bg);
   color: var(--active-btn-text);
 }
 
 button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 
 .error {
@@ -340,12 +419,45 @@ select {
 
 @media (max-width: 700px) {
   .card-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .nav-buttons {
+    gap: 0.4rem;
   }
 
   .header-actions {
-    justify-content: space-between;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-btn {
+    padding: 0.45rem;
+    justify-content: center;
+  }
+
+  .nav-buttons .nav-btn {
+    min-width: 2.6rem;
+  }
+
+  .nav-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .theme-toggle-btn {
+    width: 2rem;
+    height: 2rem;
   }
 }
 
