@@ -376,6 +376,8 @@ table {
 
 .row-icon-pre  { margin-right: 0.3em; }
 
+.date-mobile { display: none; }
+
 /* Running distance bands — left stripe */
 .run-xs  { box-shadow: inset 10px 0 0 0 #c8e8c5; }
 .run-s   { box-shadow: inset 10px 0 0 0 #9dd99a; }
@@ -527,6 +529,18 @@ select {
 }
 
 @media (max-width: 700px) {
+  main {
+    padding: 0;
+  }
+
+  .card,
+  .card.wide {
+    width: 100%;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
   .card-header {
     flex-direction: row;
     align-items: center;
@@ -568,5 +582,52 @@ select {
     width: 2rem;
     height: 2rem;
   }
+
+  .filters {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters label {
+    flex: 1 1 0;
+    justify-content: center;
+    max-width: none;
+  }
+
+  .home-table {
+    width: calc(100% + 1.2rem);
+    margin-left: -0.6rem;
+    margin-right: -0.6rem;
+    table-layout: fixed;
+    font-size: 0.95rem;
+  }
+
+  .home-table thead th {
+    font-size: 0.82rem;
+    padding: 0.35rem 0.35rem 0.4rem;
+  }
+
+  .home-table thead th:first-child,
+  .data-row td:first-child {
+    padding-left: 0.5rem;
+  }
+
+  .data-row td {
+    padding: 0.55rem 0.35rem;
+  }
+
+  .home-table thead th:nth-child(1) { width: 24%; }
+  .home-table thead th:nth-child(2) { width: 20%; }
+  .home-table thead th:nth-child(3) { width: 16%; }
+  .home-table thead th:nth-child(4) { width: 30%; }
+  .home-table thead th:nth-child(5) { width: 10%; }
+
+  .row-icon {
+    width: 0.72em;
+    height: 0.72em;
+  }
+
+  .date-desktop { display: none; }
+  .date-mobile { display: inline; }
 }
 
