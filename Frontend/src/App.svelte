@@ -488,11 +488,20 @@
 
       {#if currentPage === "home"}
         <div class="filters">
-          <label><input type="checkbox" bind:checked={showRunning} /> Running</label>
-          <label><input type="checkbox" bind:checked={showStrength} /> Strength</label>
+          <label><input class="filter-running" type="checkbox" bind:checked={showRunning} /> Running</label>
+          <label><input class="filter-strength" type="checkbox" bind:checked={showStrength} /> Strength</label>
         </div>
 
         <table class="home-table">
+          <thead>
+            <tr>
+              <th>Duration</th>
+              <th>Pace</th>
+              <th>Climb</th>
+              <th>Date</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
           <tbody>
             {#each rows as row}
               {#if row.type === "activity"}
