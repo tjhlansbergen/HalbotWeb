@@ -479,7 +479,123 @@ table {
 
 .detail-page {
   display: grid;
-  gap: 1rem;
+  gap: 0;
+}
+
+.detail-page > * + * {
+  margin-top: 1rem;
+}
+
+.detail-page h2 {
+  margin: 0;
+}
+
+.detail-page h2 + .detail-meta {
+  margin-top: 0;
+}
+
+.detail-meta {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.detail-meta span {
+  display: block;
+}
+
+.detail-page .import-section {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.detail-table th,
+.detail-table td {
+  text-align: left;
+  padding: 0.55rem 0.45rem;
+  border-top: 1px solid var(--table-border-color);
+  vertical-align: top;
+}
+
+.detail-table tr:first-child th,
+.detail-table tr:first-child td {
+  border-top: none;
+}
+
+.detail-table th:first-child,
+.detail-table td:first-child {
+  padding-left: 0;
+}
+
+.detail-table th {
+  width: 34%;
+  color: var(--text-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-notes {
+  margin-top: 0.8rem;
+}
+
+.detail-notes label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.detail-notes textarea {
+  width: 100%;
+  min-height: 5.5rem;
+}
+
+.detail-race-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 400;
+}
+
+.detail-race-toggle input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  width: 1rem;
+  height: 1rem;
+}
+
+.detail-garmin-link {
+  margin: 0.7rem 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #1fa8e6;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.detail-garmin-link:hover {
+  color: #1b97ce;
+  text-decoration: underline;
+}
+
+.detail-garmin-logo {
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .detail-actions {

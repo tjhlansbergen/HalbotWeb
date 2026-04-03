@@ -2,6 +2,7 @@
 Fitness activity tracker revisited
 
 # Todo
+- Run details edit/save
 - Remaining endpoints
 - Fix database column name(s)
 - Test cachings

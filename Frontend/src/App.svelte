@@ -13,6 +13,7 @@
   let isLoadingLogs = false;
   let logsError = "";
   const THEME_STORAGE_KEY = "halbot-theme";
+  const GARMIN_CONNECT_LOGO_PATH = "/icons/garmin-connect-logo.png";
   const currentYear = new Date().getFullYear();
   const LONG_MAX = 9223372036854775807n;
   const LOG_SEVERITY_LEVEL = Object.freeze({
@@ -203,6 +204,54 @@
     }
 
     return `${Math.round(value)}`;
+  }
+
+  function formatPace(value) {
+    const raw = String(value ?? "").trim();
+    if (!raw || raw === "-") {
+      return "-";
+    }
+
+    return `${raw} m/km`;
+  }
+
+  function formatDuration(value) {
+    if (typeof value !== "number" || value <= 0) {
+      return "-";
+    }
+
+    const totalSeconds = Math.round(value);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  function formatActivityType(value) {
+    if (typeof value === "number") {
+      if (value === 0) return "Classic";
+      if (value === 1) return "TomTom";
+      if (value === 2) return "Garmin";
+      return "Unknown";
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === "classic") return "Classic";
+      if (normalized === "tomtom") return "TomTom";
+      if (normalized === "garmin") return "Garmin";
+    }
+
+    return "Unknown";
+  }
+
+  function isGarminActivity(value) {
+    return formatActivityType(value) === "Garmin";
   }
 
   function getRunBand(distanceMeters) {
@@ -401,6 +450,12 @@
     selectedDetailItem = row;
     detailPageTitle = row.type === "activity" ? "Run" : "Strength training";
 
+    if (row.type === "activity") {
+      detailRunNotesInput = row.data.journal ?? "";
+      detailRunIsRaceInput = row.data.isRace === true;
+      showGarminLogoImage = true;
+    }
+
     if (row.type === "workout") {
       detailWorkoutMinutesInput = String(row.data.minutes ?? 20);
       detailWorkoutDateInput = toDateInput(row.data.date);
@@ -515,6 +570,9 @@
   let currentPage = "home";
   let detailPageTitle = "";
   let selectedDetailItem = null;
+  let detailRunNotesInput = "";
+  let detailRunIsRaceInput = false;
+  let showGarminLogoImage = true;
   let detailWorkoutMinutesInput = "20";
   let detailWorkoutDateInput = getTodayDateInput();
   let detailWorkoutNotesInput = "";
@@ -682,6 +740,86 @@
       {:else if currentPage === "detail"}
         <section class="detail-page">
           <h2>{detailPageTitle}</h2>
+
+          {#if selectedDetailItem?.type === "activity"}
+            <p class="detail-meta">
+              <span>{formatActivityType(selectedDetailItem.data.dataType)}</span>
+              <span>{selectedDetailItem.data.id}</span>
+            </p>
+            <section class="import-section">
+              <table class="detail-table">
+                <tbody>
+                  {#if selectedDetailItem.data.description}
+                    <tr>
+                      <th>Description</th>
+                      <td>{selectedDetailItem.data.description}</td>
+                    </tr>
+                  {/if}
+                  <tr>
+                    <th>Date</th>
+                    <td>{formatDate(selectedDetailItem.data.date)}</td>
+                  </tr>
+                  <tr>
+                    <th>Race</th>
+                    <td>
+                      <label class="detail-race-toggle">
+                        <input type="checkbox" bind:checked={detailRunIsRaceInput} />
+                        <span>{detailRunIsRaceInput ? "Yes" : "No"}</span>
+                      </label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Distance</th>
+                    <td>{formatDistance(selectedDetailItem.data.distance)} km</td>
+                  </tr>
+                  <tr>
+                    <th>Climb</th>
+                    <td>{typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <th>Duration</th>
+                    <td>{formatDuration(selectedDetailItem.data.duration)}</td>
+                  </tr>
+                  <tr>
+                    <th>Pace</th>
+                    <td>{formatPace(selectedDetailItem.data.pace)}</td>
+                  </tr>
+                  <tr>
+                    <th>Effort</th>
+                    <td>{selectedDetailItem.data.effort}</td>
+                  </tr>
+                  {#if typeof selectedDetailItem.data.heartrate === "number" && selectedDetailItem.data.heartrate > 1}
+                    <tr>
+                      <th>Heartrate</th>
+                      <td>{Math.round(selectedDetailItem.data.heartrate)}</td>
+                    </tr>
+                  {/if}
+                </tbody>
+              </table>
+
+              <div class="detail-notes">
+                <label>
+                  Notes
+                  <textarea rows="4" bind:value={detailRunNotesInput} placeholder="Optional notes"></textarea>
+                </label>
+              </div>
+
+              {#if selectedDetailItem.data.url && isGarminActivity(selectedDetailItem.data.dataType)}
+                <a class="detail-garmin-link" href={selectedDetailItem.data.url} target="_blank" rel="noopener noreferrer">
+                  {#if showGarminLogoImage}
+                    <img
+                      class="detail-garmin-logo"
+                      src={GARMIN_CONNECT_LOGO_PATH}
+                      alt=""
+                      aria-hidden="true"
+                      on:error={() => showGarminLogoImage = false}
+                    />
+                  {/if}
+                  <span>View on Garmin Connect</span>
+                </a>
+              {/if}
+            </section>
+          {/if}
 
           {#if selectedDetailItem?.type === "workout"}
             <section class="import-section">
