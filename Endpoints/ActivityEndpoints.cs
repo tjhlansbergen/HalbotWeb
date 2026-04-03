@@ -23,7 +23,11 @@ public static class ActivityEndpoints
             ) => await PostActivity(fetcher, queries, activities, garminId, date, app.Logger));
 
         // DELETE /api/activities/{id}
-        // carefull here!
+        group.MapDelete("/{id:long}", async (
+            [FromServices] ActivityQueries queries,
+            [FromServices] ActivityCache activities,
+            long id
+            ) => await DeleteActivity(queries, activities, id, app.Logger));
     }
 
     private static async Task<IResult> GetAll(ActivityCache activities)
@@ -52,6 +56,32 @@ public static class ActivityEndpoints
         {
             logger.LogError(ex, "Error fetching activity with Garmin ID {garminId}", garminId);
             return Results.Problem($"Error fetching activity with Garmin ID {garminId}: {ex.Message}");
+        }
+    }
+
+    private static async Task<IResult> DeleteActivity(ActivityQueries queries, ActivityCache activities, long id, ILogger logger)
+    {
+        try
+        {
+            var deletedCount = await queries.DeleteAsync(id);
+            activities.InvalidateCache();
+
+            if (deletedCount == 0)
+            {
+                return Results.NotFound();
+            }
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Deleted Garmin activity with ID {Id}", id);
+            }
+
+            return Results.NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error deleting activity with ID {Id}", id);
+            return Results.Problem($"Error deleting activity with ID {id}: {ex.Message}");
         }
     }
 }

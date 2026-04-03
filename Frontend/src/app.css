@@ -290,16 +290,22 @@ label {
 }
 
 input,
+textarea,
 button {
   font: inherit;
 }
 
-input {
+input,
+textarea {
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--field-border);
   background: var(--field-bg);
   color: var(--text-color);
+}
+
+textarea {
+  resize: vertical;
 }
 
 button {
@@ -469,6 +475,29 @@ table {
   border: 1px solid var(--import-border);
   border-radius: 10px;
   padding: 1rem;
+}
+
+.detail-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.detail-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-actions-main {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.detail-actions button {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
 }
 
 .import-section h2 {

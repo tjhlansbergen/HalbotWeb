@@ -44,4 +44,16 @@ public class ActivityQueries
 
         return await conn.ExecuteScalarAsync<long>(sql);
     }
+
+    public async Task<int> DeleteAsync(long id)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            DELETE FROM ActivityRecords
+            WHERE Id = @Id
+        """;
+
+        return await conn.ExecuteAsync(sql, new { Id = id });
+    }
 }

@@ -379,11 +379,147 @@
     saveStoredTheme(manualTheme);
   }
 
+  function toDateInput(value) {
+    const raw = String(value ?? "");
+    const matched = raw.match(/^\d{4}-\d{2}-\d{2}/);
+    if (matched) {
+      return matched[0];
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return getTodayDateInput();
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function openDetailPage(row) {
+    selectedDetailItem = row;
+    detailPageTitle = row.type === "activity" ? "Run" : "Strength training";
+
+    if (row.type === "workout") {
+      detailWorkoutMinutesInput = String(row.data.minutes ?? 20);
+      detailWorkoutDateInput = toDateInput(row.data.date);
+      detailWorkoutNotesInput = row.data.notes ?? "";
+    }
+
+    currentPage = "detail";
+  }
+
+  function closeDetailPage() {
+    selectedDetailItem = null;
+    detailPageTitle = "";
+    currentPage = "home";
+  }
+
+  async function saveSelectedDetail() {
+    if (!selectedDetailItem || selectedDetailItem.type !== "workout") {
+      return;
+    }
+
+    isSavingDetail = true;
+    error = "";
+
+    try {
+      const response = await fetch(`/api/workouts/${selectedDetailItem.data.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: selectedDetailItem.data.id,
+          minutes: Number(detailWorkoutMinutesInput),
+          date: detailWorkoutDateInput,
+          notes: detailWorkoutNotesInput.trim() ? detailWorkoutNotesInput.trim() : null
+        })
+      });
+
+      if (response.status === 401) {
+        isLoggedIn = false;
+        activities = [];
+        workouts = [];
+        closeDetailPage();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Save failed.");
+      }
+
+      await refreshLists();
+      selectedDetailItem = {
+        ...selectedDetailItem,
+        data: {
+          ...selectedDetailItem.data,
+          minutes: Number(detailWorkoutMinutesInput),
+          date: detailWorkoutDateInput,
+          notes: detailWorkoutNotesInput.trim() ? detailWorkoutNotesInput.trim() : null
+        }
+      };
+      closeDetailPage();
+    } catch {
+      error = "Could not save workout changes.";
+    } finally {
+      isSavingDetail = false;
+    }
+  }
+
+  async function deleteSelectedDetail() {
+    if (!selectedDetailItem) {
+      return;
+    }
+
+    isDeletingDetail = true;
+    error = "";
+
+    try {
+      const endpoint = selectedDetailItem.type === "activity"
+        ? `/api/activities/${selectedDetailItem.data.id}`
+        : `/api/workouts/${selectedDetailItem.data.id}`;
+
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (response.status === 401) {
+        isLoggedIn = false;
+        activities = [];
+        workouts = [];
+        closeDetailPage();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Delete failed.");
+      }
+
+      await refreshLists();
+      closeDetailPage();
+    } catch {
+      error = "Could not delete item.";
+    } finally {
+      isDeletingDetail = false;
+    }
+  }
+
   const workoutMinuteOptions = Array.from({ length: 18 }, (_, i) => (i + 1) * 5);
 
   let showRunning = true;
   let showStrength = true;
   let currentPage = "home";
+  let detailPageTitle = "";
+  let selectedDetailItem = null;
+  let detailWorkoutMinutesInput = "20";
+  let detailWorkoutDateInput = getTodayDateInput();
+  let detailWorkoutNotesInput = "";
+  let isSavingDetail = false;
+  let isDeletingDetail = false;
   let runningIdInput = "";
   let runningDateInput = getTodayDateInput();
   let workoutMinutesInput = "20";
@@ -518,7 +654,7 @@
           <tbody>
             {#each rows as row}
               {#if row.type === "activity"}
-                <tr class="data-row {getRunBand(row.data.distance)}">
+                <tr class="data-row {getRunBand(row.data.distance)}" on:click={() => openDetailPage(row)}>
                   <td>{formatDistance(row.data.distance)}</td>
                   <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="7"/><polyline points="12 10 12 14"/><path d="M10 3h4"/><line x1="12" y1="3" x2="12" y2="6"/></svg>{row.data.pace}</td>
                   <td>{#if typeof row.data.climb === 'number' && row.data.climb > 0}<svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polyline points="2 20 12 4 22 20"/><line x1="2" y1="20" x2="22" y2="20"/><polyline points="9 13 12 9 15 13"/></svg>{/if}{formatClimb(row.data.climb)}</td>
@@ -529,7 +665,7 @@
                   <td class="effort-col">{row.data.effort}</td>
                 </tr>
               {:else}
-                <tr class="data-row row-strength">
+                <tr class="data-row row-strength" on:click={() => openDetailPage(row)}>
                   <td>{row.data.minutes}'</td>
                   <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" y1="12" x2="18" y2="12"/><rect x="2" y="9.5" width="4" height="5" rx="1"/><rect x="18" y="9.5" width="4" height="5" rx="1"/><rect x="5" y="7.5" width="3" height="9" rx="1"/><rect x="16" y="7.5" width="3" height="9" rx="1"/></svg></td>
                   <td></td>
@@ -543,6 +679,43 @@
             {/each}
           </tbody>
         </table>
+      {:else if currentPage === "detail"}
+        <section class="detail-page">
+          <h2>{detailPageTitle}</h2>
+
+          {#if selectedDetailItem?.type === "workout"}
+            <section class="import-section">
+              <form class="import-form" on:submit|preventDefault={saveSelectedDetail}>
+                <label>
+                  Minutes
+                  <select bind:value={detailWorkoutMinutesInput}>
+                    {#each workoutMinuteOptions as minutes}
+                      <option value={String(minutes)}>{minutes}</option>
+                    {/each}
+                  </select>
+                </label>
+
+                <label>
+                  Date
+                  <input type="date" bind:value={detailWorkoutDateInput} required />
+                </label>
+
+                <label>
+                  Notes
+                  <textarea rows="4" bind:value={detailWorkoutNotesInput} placeholder="Optional notes"></textarea>
+                </label>
+              </form>
+            </section>
+          {/if}
+
+          <div class="detail-actions">
+            <div class="detail-actions-main">
+              <button type="button" on:click={saveSelectedDetail} disabled={isDeletingDetail || isSavingDetail}>Save</button>
+              <button type="button" class="nav-btn-logout" on:click={deleteSelectedDetail} disabled={isDeletingDetail || isSavingDetail}>Delete</button>
+            </div>
+            <button type="button" on:click={closeDetailPage} disabled={isDeletingDetail || isSavingDetail}>Close</button>
+          </div>
+        </section>
       {:else if currentPage === "insights"}
         <p>Insights page coming soon...</p>
       {:else if currentPage === "import"}

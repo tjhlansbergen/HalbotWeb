@@ -44,4 +44,31 @@ public class WorkoutQueries
 
         return await conn.ExecuteScalarAsync<long>(sql);
     }
+
+    public async Task<int> UpdateAsync(WorkoutRecord record)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            UPDATE WorkoutRecords
+            SET Date = @Date,
+                Minutes = @Minutes,
+                Notes = @Notes
+            WHERE Id = @Id
+        """;
+
+        return await conn.ExecuteAsync(sql, record);
+    }
+
+    public async Task<int> DeleteAsync(long id)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            DELETE FROM WorkoutRecords
+            WHERE Id = @Id
+        """;
+
+        return await conn.ExecuteAsync(sql, new { Id = id });
+    }
 }
