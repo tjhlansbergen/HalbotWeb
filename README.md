@@ -13,6 +13,8 @@ Fitness activity tracker revisited
 # Frontend (Svelte)
 - Source is in `Frontend`.
 - Production files are generated into `wwwroot` and served by ASP.NET Core.
+- Put static files that must persist across builds (icons, manifest, robots.txt) in `Frontend/public`.
+	Vite copies them to `wwwroot` on each build.
 
 ## Run in development
 1. Run backend with HTTPS profile (`https://localhost:7263`).
