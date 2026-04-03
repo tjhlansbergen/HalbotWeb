@@ -194,7 +194,7 @@
     }
 
     const kilometers = value / 1000;
-    return `${kilometers.toFixed(2).replace(".", ",")} km`;
+    return kilometers.toFixed(2).replace(".", ",");
   }
 
   function formatClimb(value) {
@@ -512,7 +512,7 @@
               <th>Pace</th>
               <th>Climb</th>
               <th>Date</th>
-              <th>Effort</th>
+              <th class="effort-col">Effort</th>
             </tr>
           </thead>
           <tbody>
@@ -526,18 +526,18 @@
                     <span class="date-desktop">{formatDate(row.data.date)}</span>
                     <span class="date-mobile">{formatDateCompact(row.data.date)}</span>
                   </td>
-                  <td>{row.data.effort}</td>
+                  <td class="effort-col">{row.data.effort}</td>
                 </tr>
               {:else}
                 <tr class="data-row row-strength">
-                  <td>{row.data.minutes} min</td>
-                  <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" y1="12" x2="18" y2="12"/><rect x="2" y="9.5" width="4" height="5" rx="1"/><rect x="18" y="9.5" width="4" height="5" rx="1"/><rect x="5" y="7.5" width="3" height="9" rx="1"/><rect x="16" y="7.5" width="3" height="9" rx="1"/></svg>strength</td>
+                  <td>{row.data.minutes}'</td>
+                  <td><svg class="row-icon row-icon-pre" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" y1="12" x2="18" y2="12"/><rect x="2" y="9.5" width="4" height="5" rx="1"/><rect x="18" y="9.5" width="4" height="5" rx="1"/><rect x="5" y="7.5" width="3" height="9" rx="1"/><rect x="16" y="7.5" width="3" height="9" rx="1"/></svg></td>
                   <td></td>
                   <td>
                     <span class="date-desktop">{formatDate(row.data.date)}</span>
                     <span class="date-mobile">{formatDateCompact(row.data.date)}</span>
                   </td>
-                  <td>{Math.ceil(row.data.minutes / 2)}</td>
+                  <td class="effort-col">{Math.ceil(row.data.minutes / 2)}</td>
                 </tr>
               {/if}
             {/each}
@@ -615,8 +615,6 @@
         </div>
       {:else if currentPage === "logs"}
         <section class="logs-section">
-          <hr class="logs-divider" />
-
           {#if logsError}
             <p class="inline-warning">{logsError}</p>
           {:else if isLoadingLogs}
@@ -625,7 +623,10 @@
             <table class="logs-table">
               <thead>
                 <tr>
-                  <th>Date/Time</th>
+                  <th>
+                    <span class="date-desktop">Date/Time</span>
+                    <span class="date-mobile">Date</span>
+                  </th>
                   <th>Severity</th>
                   <th>Message</th>
                 </tr>
@@ -638,7 +639,10 @@
                 {:else}
                   {#each logs as logEntry}
                     <tr>
-                      <td>{formatDateTime(logEntry.dateTime)}</td>
+                      <td>
+                        <span class="date-desktop">{formatDateTime(logEntry.dateTime)}</span>
+                        <span class="date-mobile">{formatDateCompact(logEntry.dateTime)}</span>
+                      </td>
                       <td>{formatLogSeverity(logEntry.severity)}</td>
                       <td>{logEntry.message ?? "-"}</td>
                     </tr>

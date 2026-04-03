@@ -347,6 +347,10 @@ table {
   padding-left: 1rem;
 }
 
+.home-table .effort-col {
+  text-align: right;
+}
+
 .data-row td {
   padding: 0.7rem 0.6rem;
   border-bottom: 1px solid var(--table-border-color);
@@ -512,7 +516,6 @@ select {
 
 .logs-table th,
 .logs-table td {
-  border-top: 1px solid var(--table-border-color);
   text-align: left;
   padding: 0.55rem 0.45rem;
   vertical-align: top;
@@ -520,6 +523,17 @@ select {
 
 .logs-table th {
   font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted-text);
+  border-bottom: 1px solid var(--table-border-color);
+}
+
+.logs-table td {
+  border-top: 1px solid var(--table-border-color);
+}
+
+.logs-table tbody tr:first-child td {
+  border-top: none;
 }
 
 .logs-table th:first-child,
@@ -599,11 +613,11 @@ select {
     margin-left: -0.6rem;
     margin-right: -0.6rem;
     table-layout: fixed;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
   }
 
   .home-table thead th {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     padding: 0.35rem 0.35rem 0.4rem;
   }
 
@@ -616,6 +630,16 @@ select {
     padding: 0.55rem 0.35rem;
   }
 
+  .run-xs,
+  .run-s,
+  .run-m,
+  .run-l,
+  .run-xl,
+  .run-xxl,
+  .row-strength {
+    box-shadow: none;
+  }
+
   .home-table thead th:nth-child(1) { width: 24%; }
   .home-table thead th:nth-child(2) { width: 20%; }
   .home-table thead th:nth-child(3) { width: 16%; }
@@ -625,6 +649,21 @@ select {
   .row-icon {
     width: 0.72em;
     height: 0.72em;
+  }
+
+  .logs-table {
+    font-size: 0.9rem;
+  }
+
+  .logs-table th:first-child,
+  .logs-table td:first-child {
+    min-width: 6.4rem;
+    width: 6.4rem;
+  }
+
+  .logs-table thead th:nth-child(2),
+  .logs-table tbody td:nth-child(2) {
+    display: none;
   }
 
   .date-desktop { display: none; }
