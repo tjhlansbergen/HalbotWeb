@@ -3,6 +3,7 @@ Fitness activity tracker revisited
 
 # Todo
 - Run details edit/save
+- Race filter
 - Remaining endpoints
 - Fix database column name(s)
 - Test cachings

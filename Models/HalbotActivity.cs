@@ -33,10 +33,12 @@ public class HalbotActivity : IComparable<HalbotActivity>
         return (other == null) ? 1 : other.Date.CompareTo(this.Date);
     }
     
-    public int Week()
-    { 
-        var day = (int)CultureInfo.CurrentCulture.Calendar.GetDayOfWeek(Date);
-        return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(Date.AddDays(4 - (day == 0 ? 7 : day)), CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+    public int Week()=> WeekOfYear(Date);
+
+    public static int WeekOfYear(DateTime date)
+    {
+        var day = (int)CultureInfo.CurrentCulture.Calendar.GetDayOfWeek(date);
+        return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(date.AddDays(4 - (day == 0 ? 7 : day)), CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
     }
 
     public static string PaceForSpeed(double speed)

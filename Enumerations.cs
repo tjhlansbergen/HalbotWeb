@@ -11,3 +11,11 @@ public enum LogSeverityLevel
     Warning,
     Error
 }
+
+public enum BucketType
+{
+    Daily,
+    Weekly,
+    Monthly,
+    Yearly
+}
