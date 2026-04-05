@@ -14,6 +14,13 @@ public static class InsightsEndpoints
             int count
             ) => await GetLastXRuns(cache, bucket, count));
 
+        // GET /api/insights/lastxworkouts
+        group.MapGet("/lastxworkouts", async (
+            [FromServices] WorkoutCache cache,
+            BucketType bucket,
+            int count
+            ) => await GetLastXWorkouts(cache, bucket, count));
+
     }
 
     private static async Task<IResult> GetLastXRuns(ActivityCache cache, BucketType bucket, int count)
@@ -25,73 +32,108 @@ public static class InsightsEndpoints
 
         var all = await cache.Get();
         var today = DateTime.UtcNow.Date;
+        IEnumerable<(DateTime Start, DateTime EndExclusive, string Key)> buckets;
 
-        object BuildBucket(DateTime bucketStartUtc, DateTime bucketEndUtcExclusive, string bucketKey)
+        try
+        {
+            buckets = GetBuckets(bucket, count, today);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return Results.BadRequest("Invalid bucket type.");
+        }
+
+        var results = buckets.Select(bucketWindow =>
         {
             var bucketActivities = all.Where(activity =>
-                activity.Date.Date >= bucketStartUtc &&
-                activity.Date.Date < bucketEndUtcExclusive);
+                activity.Date.Date >= bucketWindow.Start &&
+                activity.Date.Date < bucketWindow.EndExclusive);
 
             return new
             {
-                BucketStartUtc = bucketStartUtc,
-                BucketEndUtcExclusive = bucketEndUtcExclusive,
-                BucketKey = bucketKey,
+                BucketStartUtc = bucketWindow.Start,
+                BucketEndUtcExclusive = bucketWindow.EndExclusive,
+                BucketKey = bucketWindow.Key,
                 Distance = bucketActivities.Sum(activity => activity.Distance),
                 Climb = bucketActivities.Sum(activity => activity.Climb),
                 Speed = bucketActivities.Any() ? bucketActivities.Average(activity => activity.Speed) : 0
             };
-        }
-        
-        switch (bucket)
-        {
-            case BucketType.Daily:
-                var daily = Enumerable.Range(0, count)
-                    .Select(offset => today.AddDays(-offset))
-                    .Select(dayStart => BuildBucket(
-                        dayStart,
-                        dayStart.AddDays(1),
-                        dayStart.ToString("yyyy-MM-dd")));
-                        
-                return Results.Ok(daily);
+        });
 
-            case BucketType.Weekly:
-                var currentWeekStart = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-                var weekly = Enumerable.Range(0, count)
-                    .Select(offset => currentWeekStart.AddDays(-(offset * 7)))
-                    .Select(weekStart => BuildBucket(
-                        weekStart,
-                        weekStart.AddDays(7),
-                        $"{ISOWeek.GetYear(weekStart)}-W{ISOWeek.GetWeekOfYear(weekStart):00}"));
-
-                return Results.Ok(weekly);
-
-            case BucketType.Monthly:
-                var currentMonthStart = new DateTime(today.Year, today.Month, 1);
-                var monthly = Enumerable.Range(0, count)
-                    .Select(offset => currentMonthStart.AddMonths(-offset))
-                    .Select(monthStart => BuildBucket(
-                        monthStart,
-                        monthStart.AddMonths(1),
-                        monthStart.ToString("yyyy-MM")));
-
-                return Results.Ok(monthly);
-
-            case BucketType.Yearly:
-                var currentYearStart = new DateTime(today.Year, 1, 1);
-                var yearly = Enumerable.Range(0, count)
-                    .Select(offset => currentYearStart.AddYears(-offset))
-                    .Select(yearStart => BuildBucket(
-                        yearStart,
-                        yearStart.AddYears(1),
-                        yearStart.ToString("yyyy")));
-
-                return Results.Ok(yearly);
-
-            default:
-                return Results.BadRequest("Invalid bucket type.");
-        }
+        return Results.Ok(results);
     }
 
-    
+    private static async Task<IResult> GetLastXWorkouts(WorkoutCache cache, BucketType bucket, int count)
+    {
+        if (count <= 0)
+        {
+            return Results.BadRequest("Count must be greater than 0.");
+        }
+
+        var all = await cache.Get();
+        var today = DateTime.UtcNow.Date;
+        IEnumerable<(DateTime Start, DateTime EndExclusive, string Key)> buckets;
+
+        try
+        {
+            buckets = GetBuckets(bucket, count, today);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return Results.BadRequest("Invalid bucket type.");
+        }
+
+        var results = buckets.Select(bucketWindow =>
+        {
+            var bucketWorkouts = all.Where(workout =>
+                workout.Date.Date >= bucketWindow.Start &&
+                workout.Date.Date < bucketWindow.EndExclusive);
+
+            return new
+            {
+                BucketStartUtc = bucketWindow.Start,
+                BucketEndUtcExclusive = bucketWindow.EndExclusive,
+                BucketKey = bucketWindow.Key,
+                Minutes = bucketWorkouts.Sum(workout => workout.Minutes)
+            };
+        });
+
+        return Results.Ok(results);
+    }
+
+    private static IEnumerable<(DateTime Start, DateTime EndExclusive, string Key)> GetBuckets(BucketType bucket, int count, DateTime today)
+    {
+        return bucket switch
+        {
+            BucketType.Daily => Enumerable.Range(0, count)
+                .Select(offset => today.AddDays(-offset))
+                .Select(dayStart => (
+                    Start: dayStart,
+                    EndExclusive: dayStart.AddDays(1),
+                    Key: dayStart.ToString("yyyy-MM-dd"))),
+
+            BucketType.Weekly => Enumerable.Range(0, count)
+                .Select(offset => today.AddDays(-(((int)today.DayOfWeek + 6) % 7)).AddDays(-(offset * 7)))
+                .Select(weekStart => (
+                    Start: weekStart,
+                    EndExclusive: weekStart.AddDays(7),
+                    Key: $"{ISOWeek.GetYear(weekStart)}-W{ISOWeek.GetWeekOfYear(weekStart):00}")),
+
+            BucketType.Monthly => Enumerable.Range(0, count)
+                .Select(offset => new DateTime(today.Year, today.Month, 1).AddMonths(-offset))
+                .Select(monthStart => (
+                    Start: monthStart,
+                    EndExclusive: monthStart.AddMonths(1),
+                    Key: monthStart.ToString("yyyy-MM"))),
+
+            BucketType.Yearly => Enumerable.Range(0, count)
+                .Select(offset => new DateTime(today.Year, 1, 1).AddYears(-offset))
+                .Select(yearStart => (
+                    Start: yearStart,
+                    EndExclusive: yearStart.AddYears(1),
+                    Key: yearStart.ToString("yyyy"))),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(bucket), bucket, "Invalid bucket type.")
+        };
+    }
 }
