@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 public static class InsightsEndpoints
 {
@@ -17,60 +18,73 @@ public static class InsightsEndpoints
 
     private static async Task<IResult> GetLastXRuns(ActivityCache cache, BucketType bucket, int count)
     {
+        if (count <= 0)
+        {
+            return Results.BadRequest("Count must be greater than 0.");
+        }
+
         var all = await cache.Get();
+        var today = DateTime.UtcNow.Date;
+
+        object BuildBucket(DateTime bucketStartUtc, DateTime bucketEndUtcExclusive, string bucketKey)
+        {
+            var bucketActivities = all.Where(activity =>
+                activity.Date.Date >= bucketStartUtc &&
+                activity.Date.Date < bucketEndUtcExclusive);
+
+            return new
+            {
+                BucketStartUtc = bucketStartUtc,
+                BucketEndUtcExclusive = bucketEndUtcExclusive,
+                BucketKey = bucketKey,
+                Distance = bucketActivities.Sum(activity => activity.Distance),
+                Climb = bucketActivities.Sum(activity => activity.Climb),
+                Speed = bucketActivities.Any() ? bucketActivities.Average(activity => activity.Speed) : 0
+            };
+        }
         
         switch (bucket)
         {
             case BucketType.Daily:
-
                 var daily = Enumerable.Range(0, count)
-                    .Select(offset => DateTime.UtcNow.Date.AddDays(-offset))
-                    .Select(date => new { Date = date, Activities = all.Where(activity => activity.Date.Date == date) })
-                    .Select(day => new { 
-                        Date = day.Date, 
-                        Distance = day.Activities.Sum(activity => activity.Distance),
-                        Climb = day.Activities.Sum(activity => activity.Climb),
-                        Speed = day.Activities.Any() ? day.Activities.Average(activity => activity.Speed) : 0
-                    });
+                    .Select(offset => today.AddDays(-offset))
+                    .Select(dayStart => BuildBucket(
+                        dayStart,
+                        dayStart.AddDays(1),
+                        dayStart.ToString("yyyy-MM-dd")));
                         
                 return Results.Ok(daily);
 
             case BucketType.Weekly:
+                var currentWeekStart = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
                 var weekly = Enumerable.Range(0, count)
-                    .Select(offset => HalbotActivity.WeekOfYear(DateTime.UtcNow.Date.AddDays(-offset)))
-                    .Select(week => new { Week = week, Activities = all.Where(activity => activity.Week() == week) })
-                    .Select(week => new { 
-                        Week = week.Week, 
-                        Distance = week.Activities.Sum(activity => activity.Distance),
-                        Climb = week.Activities.Sum(activity => activity.Climb),
-                        Speed = week.Activities.Any() ? week.Activities.Average(activity => activity.Speed) : 0
-                    });
+                    .Select(offset => currentWeekStart.AddDays(-(offset * 7)))
+                    .Select(weekStart => BuildBucket(
+                        weekStart,
+                        weekStart.AddDays(7),
+                        $"{ISOWeek.GetYear(weekStart)}-W{ISOWeek.GetWeekOfYear(weekStart):00}"));
 
                 return Results.Ok(weekly);
 
             case BucketType.Monthly:
+                var currentMonthStart = new DateTime(today.Year, today.Month, 1);
                 var monthly = Enumerable.Range(0, count)
-                    .Select(offset => DateTime.UtcNow.Date.AddMonths(-offset))
-                    .Select(date => new { Month = new DateTime(date.Year, date.Month, 1), Activities = all.Where(activity => activity.Date.Year == date.Year && activity.Date.Month == date.Month) })
-                    .Select(month => new { 
-                        Month = month.Month, 
-                        Distance = month.Activities.Sum(activity => activity.Distance),
-                        Climb = month.Activities.Sum(activity => activity.Climb),
-                        Speed = month.Activities.Any() ? month.Activities.Average(activity => activity.Speed) : 0
-                    });
+                    .Select(offset => currentMonthStart.AddMonths(-offset))
+                    .Select(monthStart => BuildBucket(
+                        monthStart,
+                        monthStart.AddMonths(1),
+                        monthStart.ToString("yyyy-MM")));
 
                 return Results.Ok(monthly);
 
             case BucketType.Yearly:
+                var currentYearStart = new DateTime(today.Year, 1, 1);
                 var yearly = Enumerable.Range(0, count)
-                    .Select(offset => DateTime.UtcNow.Date.AddYears(-offset))
-                    .Select(date => new { Year = new DateTime(date.Year, 1, 1), Activities = all.Where(activity => activity.Date.Year == date.Year) })
-                    .Select(year => new { 
-                        Year = year.Year, 
-                        Distance = year.Activities.Sum(activity => activity.Distance),
-                        Climb = year.Activities.Sum(activity => activity.Climb),
-                        Speed = year.Activities.Any() ? year.Activities.Average(activity => activity.Speed) : 0
-                    });     
+                    .Select(offset => currentYearStart.AddYears(-offset))
+                    .Select(yearStart => BuildBucket(
+                        yearStart,
+                        yearStart.AddYears(1),
+                        yearStart.ToString("yyyy")));
 
                 return Results.Ok(yearly);
 
