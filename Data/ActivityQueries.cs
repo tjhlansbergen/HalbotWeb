@@ -45,6 +45,35 @@ public class ActivityQueries
         return await conn.ExecuteScalarAsync<long>(sql);
     }
 
+    public async Task<ActivityRecord?> GetByIdAsync(long id)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            SELECT Id, DataType, SerializedData, Description, IsRace, Gpx
+            FROM ActivityRecords
+            WHERE Id = @Id
+        """;
+
+        return await conn.QuerySingleOrDefaultAsync<ActivityRecord>(sql, new { Id = id });
+    }
+
+    public async Task<int> UpdateAsync(ActivityRecord record)
+    {
+        using var conn = _factory.CreateConnection();
+
+        const string sql = """
+            UPDATE ActivityRecords
+            SET SerializedData = @SerializedData,
+                Description = @Description,
+                IsRace = @IsRace,
+                Gpx = @Gpx
+            WHERE Id = @Id
+        """;
+
+        return await conn.ExecuteAsync(sql, record);
+    }
+
     public async Task<int> DeleteAsync(long id)
     {
         using var conn = _factory.CreateConnection();

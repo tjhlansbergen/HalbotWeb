@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   let isLoggedIn = false;
   let activities = [];
@@ -232,6 +232,69 @@
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
   }
 
+  function formatDurationInput(value) {
+    if (typeof value !== "number" || value <= 0) {
+      return "0:00";
+    }
+
+    const totalSeconds = Math.round(value);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  function parseDurationInputToSeconds(value) {
+    const raw = String(value ?? "").trim();
+    if (!raw) {
+      return null;
+    }
+
+    const parts = raw.split(":");
+    if (parts.length !== 2 && parts.length !== 3) {
+      return null;
+    }
+
+    const numericParts = parts.map(part => Number.parseInt(part, 10));
+    if (numericParts.some(part => Number.isNaN(part) || part < 0)) {
+      return null;
+    }
+
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    if (numericParts.length === 2) {
+      [minutes, seconds] = numericParts;
+    } else {
+      [hours, minutes, seconds] = numericParts;
+    }
+
+    if (minutes > 59 || seconds > 59) {
+      return null;
+    }
+
+    return (hours * 3600) + (minutes * 60) + seconds;
+  }
+
+  function normalizeNumberInput(value) {
+    return Number.parseFloat(String(value ?? "").trim().replace(",", "."));
+  }
+
+  function formatPaceInput(value) {
+    const raw = String(value ?? "").trim();
+    if (!raw || raw === "-") {
+      return "";
+    }
+
+    return raw.replace(/\s*m\/km$/i, "").trim();
+  }
+
   function formatActivityType(value) {
     if (typeof value === "number") {
       if (value === 0) return "Classic";
@@ -446,13 +509,51 @@
     return `${year}-${month}-${day}`;
   }
 
+  function closeRunInlineEditor() {
+    activeRunInlineField = null;
+  }
+
+  async function activateRunInlineField(fieldName) {
+    if (!selectedRunIsGarmin) {
+      return;
+    }
+
+    activeRunInlineField = fieldName;
+    await tick();
+
+    const editor = fieldName === "date"
+      ? runDateEditor
+      : fieldName === "distance"
+        ? runDistanceEditor
+        : fieldName === "climb"
+          ? runClimbEditor
+          : fieldName === "duration"
+            ? runDurationEditor
+            : fieldName === "pace"
+              ? runPaceEditor
+              : null;
+
+    if (editor?.focus) {
+      editor.focus();
+      if (editor.select) {
+        editor.select();
+      }
+    }
+  }
+
   function openDetailPage(row) {
+    closeRunInlineEditor();
     selectedDetailItem = row;
     detailPageTitle = row.type === "activity" ? "Run" : "Strength training";
 
     if (row.type === "activity") {
       detailRunNotesInput = row.data.journal ?? "";
       detailRunIsRaceInput = row.data.isRace === true;
+      detailRunDateInput = toDateInput(row.data.date);
+      detailRunDistanceInput = ((row.data.distance ?? 0) / 1000).toFixed(2);
+      detailRunClimbInput = String(Math.round(row.data.climb ?? 0));
+      detailRunDurationInput = formatDurationInput(row.data.duration);
+      detailRunPaceInput = formatPaceInput(row.data.pace);
       showGarminLogoImage = true;
     }
 
@@ -468,11 +569,12 @@
   function closeDetailPage() {
     selectedDetailItem = null;
     detailPageTitle = "";
+    closeRunInlineEditor();
     currentPage = "home";
   }
 
   async function saveSelectedDetail() {
-    if (!selectedDetailItem || selectedDetailItem.type !== "workout") {
+    if (!selectedDetailItem) {
       return;
     }
 
@@ -480,6 +582,70 @@
     error = "";
 
     try {
+      if (selectedDetailItem.type === "activity") {
+        if (!isGarminActivity(selectedDetailItem.data.dataType)) {
+          return;
+        }
+
+        const distanceKm = normalizeNumberInput(detailRunDistanceInput);
+        const climbMeters = normalizeNumberInput(detailRunClimbInput);
+        const durationSeconds = parseDurationInputToSeconds(detailRunDurationInput);
+        const pace = detailRunPaceInput.trim();
+
+        if (Number.isNaN(distanceKm) || distanceKm < 0) {
+          throw new Error("Distance is invalid.");
+        }
+
+        if (Number.isNaN(climbMeters) || climbMeters < 0) {
+          throw new Error("Climb is invalid.");
+        }
+
+        if (durationSeconds === null || durationSeconds <= 0) {
+          throw new Error("Duration must be m:ss or h:mm:ss.");
+        }
+
+        if (!/^\d{1,2}:\d{2}$/.test(pace)) {
+          throw new Error("Pace must be m:ss.");
+        }
+
+        const response = await fetch(`/api/activities/${selectedDetailItem.data.id}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            date: detailRunDateInput,
+            isRace: detailRunIsRaceInput,
+            distance: distanceKm * 1000,
+            climb: climbMeters,
+            duration: durationSeconds,
+            pace,
+            notes: detailRunNotesInput.trim() ? detailRunNotesInput.trim() : null
+          })
+        });
+
+        if (response.status === 401) {
+          isLoggedIn = false;
+          activities = [];
+          workouts = [];
+          closeDetailPage();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Save failed.");
+        }
+
+        await refreshLists();
+        closeDetailPage();
+        return;
+      }
+
+      if (selectedDetailItem.type !== "workout") {
+        return;
+      }
+
       const response = await fetch(`/api/workouts/${selectedDetailItem.data.id}`, {
         method: "PUT",
         credentials: "include",
@@ -517,8 +683,12 @@
         }
       };
       closeDetailPage();
-    } catch {
-      error = "Could not save workout changes.";
+    } catch (saveError) {
+      if (selectedDetailItem?.type === "activity") {
+        error = saveError?.message || "Could not save run changes.";
+      } else {
+        error = "Could not save workout changes.";
+      }
     } finally {
       isSavingDetail = false;
     }
@@ -572,6 +742,17 @@
   let selectedDetailItem = null;
   let detailRunNotesInput = "";
   let detailRunIsRaceInput = false;
+  let detailRunDateInput = getTodayDateInput();
+  let detailRunDistanceInput = "0.00";
+  let detailRunClimbInput = "0";
+  let detailRunDurationInput = "0:00";
+  let detailRunPaceInput = "";
+  let activeRunInlineField = null;
+  let runDateEditor = null;
+  let runDistanceEditor = null;
+  let runClimbEditor = null;
+  let runDurationEditor = null;
+  let runPaceEditor = null;
   let showGarminLogoImage = true;
   let detailWorkoutMinutesInput = "20";
   let detailWorkoutDateInput = getTodayDateInput();
@@ -603,6 +784,8 @@
     ...(showRunning ? activities.map(a => ({ type: "activity", date: a.date, data: a })) : []),
     ...(showStrength ? workouts.map(w => ({ type: "workout", date: w.date, data: w })) : [])
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
+  $: selectedRunIsGarmin = selectedDetailItem?.type === "activity" && isGarminActivity(selectedDetailItem.data.dataType);
+  $: saveDisabled = isDeletingDetail || isSavingDetail || (selectedDetailItem?.type === "activity" && !selectedRunIsGarmin);
 
   onMount(() => {
     checkAuth();
@@ -757,32 +940,82 @@
                   {/if}
                   <tr>
                     <th>Date</th>
-                    <td>{formatDate(selectedDetailItem.data.date)}</td>
+                    <td>
+                      {#if selectedRunIsGarmin}
+                        {#if activeRunInlineField === "date"}
+                          <input type="date" bind:value={detailRunDateInput} required bind:this={runDateEditor} on:blur={closeRunInlineEditor} />
+                        {:else}
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("date")} on:focus={() => activateRunInlineField("date")}>{formatDate(selectedDetailItem.data.date)}</button>
+                        {/if}
+                      {:else}
+                        {formatDate(selectedDetailItem.data.date)}
+                      {/if}
+                    </td>
                   </tr>
                   <tr>
                     <th>Race</th>
                     <td>
                       <label class="detail-race-toggle">
-                        <input type="checkbox" bind:checked={detailRunIsRaceInput} />
+                        <input type="checkbox" bind:checked={detailRunIsRaceInput} disabled={!selectedRunIsGarmin} />
                         <span>{detailRunIsRaceInput ? "Yes" : "No"}</span>
                       </label>
                     </td>
                   </tr>
                   <tr>
                     <th>Distance</th>
-                    <td>{formatDistance(selectedDetailItem.data.distance)} km</td>
+                    <td>
+                      {#if selectedRunIsGarmin}
+                        {#if activeRunInlineField === "distance"}
+                          <input type="number" min="0" step="0.01" bind:value={detailRunDistanceInput} bind:this={runDistanceEditor} on:blur={closeRunInlineEditor} />
+                        {:else}
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("distance")} on:focus={() => activateRunInlineField("distance")}>{formatDistance(selectedDetailItem.data.distance)} km</button>
+                        {/if}
+                      {:else}
+                        {formatDistance(selectedDetailItem.data.distance)} km
+                      {/if}
+                    </td>
                   </tr>
                   <tr>
                     <th>Climb</th>
-                    <td>{typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}</td>
+                    <td>
+                      {#if selectedRunIsGarmin}
+                        {#if activeRunInlineField === "climb"}
+                          <input type="number" min="0" step="1" bind:value={detailRunClimbInput} bind:this={runClimbEditor} on:blur={closeRunInlineEditor} />
+                        {:else}
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("climb")} on:focus={() => activateRunInlineField("climb")}>{typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}</button>
+                        {/if}
+                      {:else}
+                        {typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}
+                      {/if}
+                    </td>
                   </tr>
                   <tr>
                     <th>Duration</th>
-                    <td>{formatDuration(selectedDetailItem.data.duration)}</td>
+                    <td>
+                      {#if selectedRunIsGarmin}
+                        {#if activeRunInlineField === "duration"}
+                          <input type="text" bind:value={detailRunDurationInput} placeholder="h:mm:ss or m:ss" bind:this={runDurationEditor} on:blur={closeRunInlineEditor} />
+                        {:else}
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("duration")} on:focus={() => activateRunInlineField("duration")}>{formatDuration(selectedDetailItem.data.duration)}</button>
+                        {/if}
+                      {:else}
+                        {formatDuration(selectedDetailItem.data.duration)}
+                      {/if}
+                    </td>
                   </tr>
                   <tr>
                     <th>Pace</th>
-                    <td>{formatPace(selectedDetailItem.data.pace)}</td>
+                    <td>
+                      {#if selectedRunIsGarmin}
+                        {#if activeRunInlineField === "pace"}
+                          <input type="text" bind:value={detailRunPaceInput} placeholder="m:ss" bind:this={runPaceEditor} on:blur={closeRunInlineEditor} />
+                        {:else}
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("pace")} on:focus={() => activateRunInlineField("pace")}>{formatPace(selectedDetailItem.data.pace)}</button>
+                        {/if}
+                      {:else}
+                        {formatPace(selectedDetailItem.data.pace)}
+                      {/if}
+                    </td>
                   </tr>
                   <tr>
                     <th>Effort</th>
@@ -800,7 +1033,7 @@
               <div class="detail-notes">
                 <label>
                   Notes
-                  <textarea rows="4" bind:value={detailRunNotesInput} placeholder="Optional notes"></textarea>
+                  <textarea rows="4" bind:value={detailRunNotesInput} placeholder="Optional notes" disabled={!selectedRunIsGarmin}></textarea>
                 </label>
               </div>
 
@@ -848,7 +1081,7 @@
 
           <div class="detail-actions">
             <div class="detail-actions-main">
-              <button type="button" on:click={saveSelectedDetail} disabled={isDeletingDetail || isSavingDetail}>Save</button>
+              <button type="button" on:click={saveSelectedDetail} disabled={saveDisabled}>Save</button>
               <button type="button" class="nav-btn-logout" on:click={deleteSelectedDetail} disabled={isDeletingDetail || isSavingDetail}>Delete</button>
             </div>
             <button type="button" on:click={closeDetailPage} disabled={isDeletingDetail || isSavingDetail}>Close</button>
