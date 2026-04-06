@@ -1,17 +1,19 @@
 <script lang="ts">
-  import Overall   from "./insights/Overall.svelte";
+  import Load      from "./insights/Load.svelte";
   import Y2D       from "./insights/Y2D.svelte";
   import Stats     from "./insights/Stats.svelte";
   import Weeks     from "./insights/Weeks.svelte";
   import Eddington from "./insights/Eddington.svelte";
+  import Races     from "./insights/Races.svelte";
   import Map       from "./insights/Map.svelte";
 
   const subPages = [
-    { title: "Overall",   component: Overall   },
+    { title: "Load",      component: Load      },
     { title: "Y2D",       component: Y2D       },
     { title: "Stats",     component: Stats     },
     { title: "Weeks",     component: Weeks     },
     { title: "Eddington", component: Eddington },
+    { title: "Races",     component: Races     },
     { title: "Map",       component: Map       },
   ] as const;
 
