@@ -13,9 +13,9 @@ public static class ActivityTranslators
     {
         var result = new List<HalbotActivity>();
 
-        result.AddRange(ParseClassicJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.Classic)));
-        result.AddRange(ParseTomTomJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.TomTom)));
-        result.AddRange(ParseGarminJson(records.Where(r => (ActivityDataType)r.DataType == ActivityDataType.Garmin)));
+        result.AddRange(ParseClassicJson(records.Where(r => r.DataType == ActivityDataType.Classic)));
+        result.AddRange(ParseTomTomJson(records.Where(r => r.DataType == ActivityDataType.TomTom)));
+        result.AddRange(ParseGarminJson(records.Where(r => r.DataType == ActivityDataType.Garmin)));
 
         return result;
     }
@@ -27,7 +27,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.Garmin || string.IsNullOrEmpty(record.SerializedData))
+            if (record.DataType != ActivityDataType.Garmin || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
@@ -46,7 +46,7 @@ public static class ActivityTranslators
                 Id = record.Id,
                 Description = record.Description,
                 IsRace = Convert.ToBoolean(record.IsRace),
-                DataType = (ActivityDataType)record.DataType,
+                DataType = record.DataType,
                 Journal = record.Gpx,    // todo yes, this is a hack
             };
 
@@ -82,7 +82,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.TomTom || string.IsNullOrEmpty(record.SerializedData))
+            if (record.DataType != ActivityDataType.TomTom || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
@@ -101,7 +101,7 @@ public static class ActivityTranslators
                 Id = record.Id,
                 Description = record.Description,
                 IsRace = Convert.ToBoolean(record.IsRace),
-                DataType = (ActivityDataType)record.DataType,
+                DataType = record.DataType,
                 Journal = record.Gpx,    // yes, this is a hack
             };
 
@@ -138,7 +138,7 @@ public static class ActivityTranslators
         foreach (var record in records)
         {
             // invalid data type, return empty object
-            if ((ActivityDataType)record.DataType != ActivityDataType.Classic || string.IsNullOrEmpty(record.SerializedData))
+            if (record.DataType != ActivityDataType.Classic || string.IsNullOrEmpty(record.SerializedData))
             {
                 result.Add(new HalbotActivity() { Id = record.Id });
                 continue;
@@ -158,7 +158,7 @@ public static class ActivityTranslators
                 Id = record.Id,
                 Description = record.Description,
                 IsRace = Convert.ToBoolean(record.IsRace),
-                DataType = (ActivityDataType)record.DataType,
+                DataType = record.DataType,
                 Journal = record.Gpx,    // yes, this is a hack
 
                 Date = classicActivity.StartDatetime.DateTime,

@@ -76,7 +76,7 @@ public static class ActivityEndpoints
                 return Results.NotFound();
             }
 
-            if ((ActivityDataType)existing.DataType != ActivityDataType.Garmin)
+            if (existing.DataType != ActivityDataType.Garmin)
             {
                 return Results.BadRequest("Only Garmin activities can be edited.");
             }
