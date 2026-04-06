@@ -553,18 +553,26 @@ table {
   text-align: left;
   width: 100%;
   cursor: text;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
 }
 
-.inline-edit-trigger::after {
-  content: "✏";
-  margin-left: 0.5em;
-  opacity: 0.6;
-  transform: rotate(45deg);
+.inline-edit-trigger svg {
   display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  fill: none;
+  stroke: var(--muted-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  flex-shrink: 0;
 }
 
-.inline-edit-trigger:hover::after {
-  opacity: 1;
+.inline-edit-trigger:hover svg {
+  opacity: 0.8;
 }
 
 .inline-edit-trigger:focus-visible {

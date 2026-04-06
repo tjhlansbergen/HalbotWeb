@@ -101,6 +101,7 @@ public static class ActivityEndpoints
 
             existing.Id = id;
             existing.IsRace = request.IsRace;
+            existing.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
             existing.Gpx = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
             existing.SerializedData = updatedSerializedData;
 
@@ -254,5 +255,6 @@ public static class ActivityEndpoints
         double Climb,
         double Duration,
         string Pace,
+        string? Description,
         string? Notes);
 }

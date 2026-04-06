@@ -531,7 +531,9 @@
             ? runDurationEditor
             : fieldName === "pace"
               ? runPaceEditor
-              : null;
+              : fieldName === "description"
+                ? runDescriptionEditor
+                : null;
 
     if (editor?.focus) {
       editor.focus();
@@ -548,6 +550,7 @@
 
     if (row.type === "activity") {
       detailRunNotesInput = row.data.journal ?? "";
+      detailRunDescriptionInput = row.data.description ?? "";
       detailRunIsRaceInput = row.data.isRace === true;
       detailRunDateInput = toDateInput(row.data.date);
       detailRunDistanceInput = ((row.data.distance ?? 0) / 1000).toFixed(2);
@@ -621,6 +624,7 @@
             climb: climbMeters,
             duration: durationSeconds,
             pace,
+            description: detailRunDescriptionInput.trim() ? detailRunDescriptionInput.trim() : null,
             notes: detailRunNotesInput.trim() ? detailRunNotesInput.trim() : null
           })
         });
@@ -741,6 +745,7 @@
   let detailPageTitle = "";
   let selectedDetailItem = null;
   let detailRunNotesInput = "";
+  let detailRunDescriptionInput = "";
   let detailRunIsRaceInput = false;
   let detailRunDateInput = getTodayDateInput();
   let detailRunDistanceInput = "0.00";
@@ -753,6 +758,7 @@
   let runClimbEditor = null;
   let runDurationEditor = null;
   let runPaceEditor = null;
+  let runDescriptionEditor = null;
   let showGarminLogoImage = true;
   let detailWorkoutMinutesInput = "20";
   let detailWorkoutDateInput = getTodayDateInput();
@@ -932,10 +938,23 @@
             <section class="import-section">
               <table class="detail-table">
                 <tbody>
-                  {#if selectedDetailItem.data.description}
+                  {#if selectedDetailItem.data.description || selectedRunIsGarmin}
                     <tr>
                       <th>Description</th>
-                      <td>{selectedDetailItem.data.description}</td>
+                      <td>
+                        {#if selectedRunIsGarmin}
+                          {#if activeRunInlineField === "description"}
+                            <input type="text" bind:value={detailRunDescriptionInput} placeholder="Optional description" bind:this={runDescriptionEditor} on:blur={closeRunInlineEditor} />
+                          {:else}
+                            <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("description")} on:focus={() => activateRunInlineField("description")}>
+                              <span>{selectedDetailItem.data.description || "-"}</span>
+                              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                            </button>
+                          {/if}
+                        {:else}
+                          {selectedDetailItem.data.description}
+                        {/if}
+                      </td>
                     </tr>
                   {/if}
                   <tr>
@@ -945,7 +964,10 @@
                         {#if activeRunInlineField === "date"}
                           <input type="date" bind:value={detailRunDateInput} required bind:this={runDateEditor} on:blur={closeRunInlineEditor} />
                         {:else}
-                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("date")} on:focus={() => activateRunInlineField("date")}>{formatDate(selectedDetailItem.data.date)}</button>
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("date")} on:focus={() => activateRunInlineField("date")}>
+                            <span>{formatDate(selectedDetailItem.data.date)}</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
                         {/if}
                       {:else}
                         {formatDate(selectedDetailItem.data.date)}
@@ -968,7 +990,10 @@
                         {#if activeRunInlineField === "distance"}
                           <input type="number" min="0" step="0.01" bind:value={detailRunDistanceInput} bind:this={runDistanceEditor} on:blur={closeRunInlineEditor} />
                         {:else}
-                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("distance")} on:focus={() => activateRunInlineField("distance")}>{formatDistance(selectedDetailItem.data.distance)} km</button>
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("distance")} on:focus={() => activateRunInlineField("distance")}>
+                            <span>{formatDistance(selectedDetailItem.data.distance)} km</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
                         {/if}
                       {:else}
                         {formatDistance(selectedDetailItem.data.distance)} km
@@ -982,7 +1007,10 @@
                         {#if activeRunInlineField === "climb"}
                           <input type="number" min="0" step="1" bind:value={detailRunClimbInput} bind:this={runClimbEditor} on:blur={closeRunInlineEditor} />
                         {:else}
-                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("climb")} on:focus={() => activateRunInlineField("climb")}>{typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}</button>
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("climb")} on:focus={() => activateRunInlineField("climb")}>
+                            <span>{typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
                         {/if}
                       {:else}
                         {typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}
@@ -996,7 +1024,10 @@
                         {#if activeRunInlineField === "duration"}
                           <input type="text" bind:value={detailRunDurationInput} placeholder="h:mm:ss or m:ss" bind:this={runDurationEditor} on:blur={closeRunInlineEditor} />
                         {:else}
-                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("duration")} on:focus={() => activateRunInlineField("duration")}>{formatDuration(selectedDetailItem.data.duration)}</button>
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("duration")} on:focus={() => activateRunInlineField("duration")}>
+                            <span>{formatDuration(selectedDetailItem.data.duration)}</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
                         {/if}
                       {:else}
                         {formatDuration(selectedDetailItem.data.duration)}
@@ -1010,7 +1041,10 @@
                         {#if activeRunInlineField === "pace"}
                           <input type="text" bind:value={detailRunPaceInput} placeholder="m:ss" bind:this={runPaceEditor} on:blur={closeRunInlineEditor} />
                         {:else}
-                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("pace")} on:focus={() => activateRunInlineField("pace")}>{formatPace(selectedDetailItem.data.pace)}</button>
+                          <button type="button" class="inline-edit-trigger" on:click={() => activateRunInlineField("pace")} on:focus={() => activateRunInlineField("pace")}>
+                            <span>{formatPace(selectedDetailItem.data.pace)}</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                          </button>
                         {/if}
                       {:else}
                         {formatPace(selectedDetailItem.data.pace)}
