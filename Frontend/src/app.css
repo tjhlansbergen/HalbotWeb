@@ -26,6 +26,7 @@
   --toggle-track-active: #134b8c;
   --toggle-thumb: #ffffff;
   --focus-ring: rgba(19, 75, 140, 0.35);
+  --insight-title-color: #2e66a9;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -57,6 +58,7 @@
   --toggle-track-active: #3a6fae;
   --toggle-thumb: #ffffff;
   --focus-ring: rgba(114, 166, 231, 0.38);
+  --insight-title-color: #5b9bd5;
 }
 
 * {

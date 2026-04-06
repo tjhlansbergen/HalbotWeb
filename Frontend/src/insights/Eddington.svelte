@@ -139,7 +139,7 @@
 
 	.eddington-score {
 		margin: 0 0 0.65rem;
-		color: #194a84;
+		color: var(--insight-title-color);
 		font-weight: 500;
 	}
 

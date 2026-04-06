@@ -31,6 +31,7 @@
 
   const currentYear = new Date().getFullYear();
   let currentPage = "home";
+  let detailReturnPage: "home" | "insights" = "home";
 
   // Home page state
   let showRunning = true;
@@ -309,7 +310,14 @@
     saveStoredTheme(manualTheme);
   }
 
-  function openDetailPage(row: any) {
+  function openDetailPage(
+    row: any,
+    options?: {
+      returnPage?: "home" | "insights";
+    }
+  ) {
+    detailReturnPage = options?.returnPage ?? "home";
+
     selectedDetailItem = row;
     detailPageTitle = row.type === "activity" ? "Run" : "Strength training";
 
@@ -337,7 +345,18 @@
     selectedDetailItem = null;
     detailPageTitle = "";
     activeRunInlineField = null;
-    currentPage = "home";
+
+    if (detailReturnPage === "insights") {
+      currentPage = "insights";
+    } else {
+      currentPage = "home";
+    }
+
+    detailReturnPage = "home";
+  }
+
+  function openDetailFromInsights(event: CustomEvent<any>) {
+    openDetailPage(event.detail, { returnPage: "insights" });
   }
 
   async function saveSelectedDetail() {
@@ -599,7 +618,7 @@
           onClose={closeDetailPage}
         />
       {:else if currentPage === "insights"}
-        <InsightsPage />
+        <InsightsPage on:openDetail={openDetailFromInsights} />
       {:else if currentPage === "import"}
         <ImportPage
           bind:runningIdInput

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createEventDispatcher, onMount } from "svelte";
   import Load      from "./insights/Load.svelte";
   import Y2D       from "./insights/Y2D.svelte";
   import Stats     from "./insights/Stats.svelte";
@@ -6,6 +7,11 @@
   import Eddington from "./insights/Eddington.svelte";
   import Races     from "./insights/Races.svelte";
   import Map       from "./insights/Map.svelte";
+
+  const INSIGHTS_TAB_KEY = "halbot-insights-active-index";
+  const dispatch = createEventDispatcher();
+  let activeIndex = 0;
+  let hasLoadedStoredIndex = false;
 
   const subPages = [
     { title: "Load",      component: Load      },
@@ -17,17 +23,36 @@
     { title: "Map",       component: Map       },
   ] as const;
 
-  let index = 0;
-
   function prev() {
-    index = (index - 1 + subPages.length) % subPages.length;
+    activeIndex = (activeIndex - 1 + subPages.length) % subPages.length;
   }
 
   function next() {
-    index = (index + 1) % subPages.length;
+    activeIndex = (activeIndex + 1) % subPages.length;
   }
 
-  $: current = subPages[index];
+  function openRaceDetail(event: CustomEvent<any>) {
+    dispatch("openDetail", event.detail);
+  }
+
+  onMount(() => {
+    if (typeof window === "undefined") {
+      hasLoadedStoredIndex = true;
+      return;
+    }
+
+    const stored = Number.parseInt(window.sessionStorage.getItem(INSIGHTS_TAB_KEY) ?? "0", 10);
+    if (Number.isFinite(stored)) {
+      activeIndex = Math.min(Math.max(stored, 0), subPages.length - 1);
+    }
+
+    hasLoadedStoredIndex = true;
+  });
+
+  $: current = subPages[activeIndex] ?? subPages[0];
+  $: if (hasLoadedStoredIndex && typeof window !== "undefined") {
+    window.sessionStorage.setItem(INSIGHTS_TAB_KEY, String(activeIndex));
+  }
 </script>
 
 <div class="insights-page">
@@ -50,6 +75,10 @@
   </nav>
 
   <div class="insights-content">
-    <svelte:component this={current.component} />
+    {#if current.title === "Races"}
+      <Races on:openDetail={openRaceDetail} />
+    {:else}
+      <svelte:component this={current.component} />
+    {/if}
   </div>
 </div>
