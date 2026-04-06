@@ -4,6 +4,7 @@
   import LogsPage from "./LogsPage.svelte";
   import DetailsPage from "./DetailsPage.svelte";
   import ImportPage from "./ImportPage.svelte";
+  import InsightsPage from "./InsightsPage.svelte";
   import {
     getTodayDateInput,
     readStoredTheme,
@@ -561,7 +562,7 @@
               {/if}
             </svg>
           </button>
-          <button type="button" class="nav-btn-logout" on:click={logout} title="Logout">
+          <button type="button" class="nav-btn nav-btn-logout" on:click={logout} title="Logout">
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z"/><path d="M4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
             </svg>
@@ -598,7 +599,7 @@
           onClose={closeDetailPage}
         />
       {:else if currentPage === "insights"}
-        <p>Insights page coming soon...</p>
+        <InsightsPage />
       {:else if currentPage === "import"}
         <ImportPage
           bind:runningIdInput
