@@ -41,7 +41,8 @@ public class DbLogger : ILogger
     IDisposable ILogger.BeginScope<TState>(TState state) => null!;
 
     public bool IsEnabled(LogLevel logLevel)
-        => logLevel >= LogLevel.Information;
+        => logLevel >= LogLevel.Information
+        && _category != "Microsoft.Hosting.Lifetime";
 
     public void Log<TState>(
         LogLevel logLevel,
@@ -73,6 +74,6 @@ public class DbLogger : ILogger
             }
         ).GetAwaiter().GetResult();
         
-        writer.Rotate(100).GetAwaiter().GetResult();
+        writer.Rotate(200).GetAwaiter().GetResult();
     }
 }
