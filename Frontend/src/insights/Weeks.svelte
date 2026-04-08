@@ -284,10 +284,10 @@
 
 						<div class="value-labels">
 							{#if cell.hasRun}
-								<span class="run-value">R {Math.round(cell.runEffort)}e</span>
+								<span class="run-value">{Math.round(cell.runEffort)}e</span>
 							{/if}
 							{#if cell.hasWorkout}
-								<span class="workout-value">W {Math.round(cell.workoutMinutes)}m</span>
+								<span class="workout-value">{Math.round(cell.workoutMinutes)}m</span>
 							{/if}
 						</div>
 					</div>
@@ -421,18 +421,45 @@
 	}
 
 	@media (max-width: 700px) {
-		.weeks-header,
-		.weeks-grid {
-			min-width: 700px;
+		.weeks {
+			overflow-x: hidden;
 		}
 
 		.weeks-header,
 		.weeks-grid {
-			grid-template-columns: repeat(7, minmax(4.4rem, 1fr));
+			min-width: 0;
+			width: 100%;
+			grid-template-columns: repeat(7, minmax(0, 1fr));
+		}
+
+		.weeks-header {
+			margin-bottom: 0.15rem;
+		}
+
+		.day-name {
+			font-size: 0.62rem;
+			letter-spacing: 0.01em;
 		}
 
 		.day-cell {
-			grid-template-rows: 1rem 3rem auto;
+			padding: 0.18rem 0.04rem 0.22rem;
+			grid-template-rows: 0.85rem 2.35rem auto;
+			row-gap: 0.08rem;
+		}
+
+		.date-label {
+			font-size: 0.6rem;
+		}
+
+		.bubble-stack {
+			height: 2.35rem;
+			transform: scale(0.88);
+			transform-origin: center;
+		}
+
+		.value-labels {
+			font-size: 0.58rem;
+			min-height: 1.2rem;
 		}
 	}
 </style>
