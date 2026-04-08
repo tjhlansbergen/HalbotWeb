@@ -232,7 +232,7 @@
 		margin: 0;
 		font-size: 1.25rem;
 		color: var(--insight-title-color);
-		font-weight: 700;
+		font-weight: 500;
 	}
 
 	.metric-section {
@@ -341,7 +341,7 @@
 
 		.metric-year,
 		.metric-value {
-			font-size: 0.9rem;
+			font-size: 0.82rem;
 		}
 
 		.metric-value {
