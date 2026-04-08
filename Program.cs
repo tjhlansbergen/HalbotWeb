@@ -47,11 +47,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
 builder.Services.AddScoped<LogQueries>();
-builder.Services.AddScoped<ActivityQueries>();
-builder.Services.AddScoped<ActivityCache>();
+builder.Services.AddSingleton<ActivityQueries>();
+builder.Services.AddSingleton<ActivityCache>();
 builder.Services.AddScoped<ActivityFetcher>();
-builder.Services.AddScoped<WorkoutQueries>();
-builder.Services.AddScoped<WorkoutCache>();
+builder.Services.AddSingleton<WorkoutQueries>();
+builder.Services.AddSingleton<WorkoutCache>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

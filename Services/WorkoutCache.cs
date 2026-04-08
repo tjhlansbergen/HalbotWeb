@@ -1,7 +1,9 @@
 public class WorkoutCache
 {
-    private List<WorkoutRecord> _workouts = [];    
-    private WorkoutQueries _queries;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly WorkoutQueries _queries;
+    private List<WorkoutRecord> _workouts = [];
+    private bool _isLoaded;
 
     public WorkoutCache(WorkoutQueries queries)
     {
@@ -10,16 +12,31 @@ public class WorkoutCache
 
     public async Task<List<WorkoutRecord>> Get()
     {
-        if (_workouts.Count != await _queries.CountAllAsync())
+        if (_isLoaded)
         {
-            _workouts = (await _queries.GetAllAsync()).ToList();
+            return _workouts;
         }
 
-        return _workouts;
+        await _gate.WaitAsync();
+        try
+        {
+            if (!_isLoaded)
+            {
+                _workouts = (await _queries.GetAllAsync()).ToList();
+                _isLoaded = true;
+            }
+
+            return _workouts;
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     public void InvalidateCache()
     {
-        _workouts.Clear();
+        _workouts = [];
+        _isLoaded = false;
     }
 }

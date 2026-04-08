@@ -1,7 +1,9 @@
 public class ActivityCache
 {
-    private List<HalbotActivity> _activities = [];    
-    private ActivityQueries _queries;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly ActivityQueries _queries;
+    private List<HalbotActivity> _activities = [];
+    private bool _isLoaded;
 
     public ActivityCache(ActivityQueries queries)
     {
@@ -10,16 +12,31 @@ public class ActivityCache
 
     public async Task<List<HalbotActivity>> Get()
     {
-        if (_activities.Count != await _queries.CountAllAsync())
+        if (_isLoaded)
         {
-            _activities = ActivityTranslators.Parse(await _queries.GetAllAsync());
+            return _activities;
         }
 
-        return _activities;
+        await _gate.WaitAsync();
+        try
+        {
+            if (!_isLoaded)
+            {
+                _activities = ActivityTranslators.Parse(await _queries.GetAllAsync());
+                _isLoaded = true;
+            }
+
+            return _activities;
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     public void InvalidateCache()
     {
-        _activities.Clear();
+        _activities = [];
+        _isLoaded = false;
     }
 }
