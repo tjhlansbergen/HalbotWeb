@@ -27,6 +27,10 @@
   --toggle-thumb: #ffffff;
   --focus-ring: rgba(19, 75, 140, 0.35);
   --insight-title-color: #2e66a9;
+  --insight-color-distance-azure: #4b8cff;
+  --insight-color-climb-coral: #ff7a59;
+  --insight-color-pace-mint: #2bbf9f;
+  --insight-color-workout-sun: #f0d060;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -59,6 +63,10 @@
   --toggle-thumb: #ffffff;
   --focus-ring: rgba(114, 166, 231, 0.38);
   --insight-title-color: #5b9bd5;
+  --insight-color-distance-azure: #7fb0ff;
+  --insight-color-climb-coral: #ff9a80;
+  --insight-color-pace-mint: #58d4ba;
+  --insight-color-workout-sun: #f0d060;
 }
 
 * {
@@ -920,6 +928,46 @@ select {
   font-style: italic;
   text-align: center;
   padding: 2rem 0;
+}
+
+.load-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.load-section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.load-section h3 {
+  margin: 0;
+  color: var(--insight-title-color);
+  font-size: 1rem;
+}
+
+.load-chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--table-border-color);
+  border-radius: 10px;
+  padding: 0.5rem 0.35rem;
+  background: color-mix(in srgb, var(--field-bg) 72%, transparent);
+}
+
+.load-chart-wrap :global(svg) {
+  min-width: 760px;
+}
+
+.load-chart-canvas {
+  min-width: 760px;
+  height: 320px;
+}
+
+@media (max-width: 700px) {
+  .load-chart-canvas {
+    height: 260px;
+  }
 }
 
 @media (max-width: 600px) {
