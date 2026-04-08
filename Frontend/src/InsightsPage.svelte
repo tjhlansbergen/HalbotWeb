@@ -9,19 +9,23 @@
   import Map       from "./insights/Map.svelte";
 
   const INSIGHTS_TAB_KEY = "halbot-insights-active-index";
+  const DEFAULT_SUBPAGE_TITLE = "Weeks";
   const dispatch = createEventDispatcher();
   let activeIndex = 0;
   let hasLoadedStoredIndex = false;
 
   const subPages = [
+    { title: "Weeks",     component: Weeks     },
     { title: "Load",      component: Load      },
     { title: "Y2D",       component: Y2D       },
     { title: "Stats",     component: Stats     },
-    { title: "Weeks",     component: Weeks     },
-    { title: "Eddington", component: Eddington },
     { title: "Races",     component: Races     },
+    { title: "Eddington", component: Eddington },
     { title: "Map",       component: Map       },
   ] as const;
+
+  const defaultIndex = Math.max(0, subPages.findIndex((page) => page.title === DEFAULT_SUBPAGE_TITLE));
+  activeIndex = defaultIndex;
 
   function prev() {
     activeIndex = (activeIndex - 1 + subPages.length) % subPages.length;
@@ -41,7 +45,7 @@
       return;
     }
 
-    const stored = Number.parseInt(window.sessionStorage.getItem(INSIGHTS_TAB_KEY) ?? "0", 10);
+    const stored = Number.parseInt(window.sessionStorage.getItem(INSIGHTS_TAB_KEY) ?? String(defaultIndex), 10);
     if (Number.isFinite(stored)) {
       activeIndex = Math.min(Math.max(stored, 0), subPages.length - 1);
     }
