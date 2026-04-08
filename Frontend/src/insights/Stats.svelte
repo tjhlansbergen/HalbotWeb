@@ -200,13 +200,13 @@
 		const maxValue = Math.max(...selected.map((item) => item.value));
 
 		return selected.map((item, index) => {
-			const normalized = maxValue === minValue
-				? 1
-				: sortDirection === "asc"
-					? (maxValue - item.value) / (maxValue - minValue)
-					: (item.value - minValue) / (maxValue - minValue);
+			const normalized = sortDirection === "asc"
+				? (item.value > 0 ? minValue / item.value : 0)
+				: (maxValue > 0 ? item.value / maxValue : 0);
 
-			const barValue = Math.max(0.62, normalized);
+			const barValue = Number.isFinite(normalized)
+				? Math.max(0, Math.min(1, normalized))
+				: 0;
 
 			return {
 				rank: index + 1,
