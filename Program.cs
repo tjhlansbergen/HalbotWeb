@@ -68,7 +68,6 @@ app.MapActivityEndpoints();
 app.MapLoginEndpoints();
 app.MapLogEndpoints();
 app.MapWorkoutEndpoints();
-app.MapInsightsEndpoints();
 
 app.MapFallbackToFile("index.html");
 
