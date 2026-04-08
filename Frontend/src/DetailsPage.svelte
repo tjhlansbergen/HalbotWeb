@@ -28,6 +28,7 @@
   export let detailRunDateInput = "";
   export let detailRunDistanceInput = "0.00";
   export let detailRunClimbInput = "0";
+  export let detailRunElevationInput = "0";
   export let detailRunDurationInput = "0:00";
   export let detailRunPaceInput = "";
   export let activeRunInlineField: string | null = null;
@@ -41,6 +42,7 @@
   let runDateEditor: HTMLInputElement | null;
   let runDistanceEditor: HTMLInputElement | null;
   let runClimbEditor: HTMLInputElement | null;
+  let runElevationEditor: HTMLInputElement | null;
   let runDurationEditor: HTMLInputElement | null;
   let runPaceEditor: HTMLInputElement | null;
   let runDescriptionEditor: HTMLInputElement | null;
@@ -60,6 +62,7 @@
       fieldName === "date" ? runDateEditor
       : fieldName === "distance" ? runDistanceEditor
       : fieldName === "climb" ? runClimbEditor
+      : fieldName === "elevation" ? runElevationEditor
       : fieldName === "duration" ? runDurationEditor
       : fieldName === "pace" ? runPaceEditor
       : fieldName === "description" ? runDescriptionEditor
@@ -167,6 +170,23 @@
                 {/if}
               {:else}
                 {typeof selectedDetailItem.data.climb === "number" && selectedDetailItem.data.climb > 0 ? `${Math.round(selectedDetailItem.data.climb)} meters` : "-"}
+              {/if}
+            </td>
+          </tr>
+          <tr>
+            <th>Elevation</th>
+            <td>
+              {#if selectedRunIsGarmin}
+                {#if activeRunInlineField === "elevation"}
+                  <input type="number" min="0" step="1" bind:value={detailRunElevationInput} bind:this={runElevationEditor} on:blur={closeEditor} />
+                {:else}
+                  <button type="button" class="inline-edit-trigger" on:click={() => activateField("elevation")} on:focus={() => activateField("elevation")}>
+                    <span>{typeof selectedDetailItem.data.maxElevation === "number" && selectedDetailItem.data.maxElevation > 0 ? `${Math.round(selectedDetailItem.data.maxElevation)} meters` : "-"}</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  </button>
+                {/if}
+              {:else}
+                {typeof selectedDetailItem.data.maxElevation === "number" && selectedDetailItem.data.maxElevation > 0 ? `${Math.round(selectedDetailItem.data.maxElevation)} meters` : "-"}
               {/if}
             </td>
           </tr>

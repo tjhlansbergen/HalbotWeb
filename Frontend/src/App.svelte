@@ -46,6 +46,7 @@
   let detailRunDateInput = getTodayDateInput();
   let detailRunDistanceInput = "0.00";
   let detailRunClimbInput = "0";
+  let detailRunElevationInput = "0";
   let detailRunDurationInput = "0:00";
   let detailRunPaceInput = "";
   let activeRunInlineField: string | null = null;
@@ -328,6 +329,7 @@
       detailRunDateInput = toDateInput(row.data.date);
       detailRunDistanceInput = ((row.data.distance ?? 0) / 1000).toFixed(2);
       detailRunClimbInput = String(Math.round(row.data.climb ?? 0));
+      detailRunElevationInput = String(Math.round(row.data.maxElevation ?? 0));
       detailRunDurationInput = formatDurationInput(row.data.duration);
       detailRunPaceInput = formatPaceInput(row.data.pace);
     }
@@ -375,6 +377,7 @@
 
         const distanceKm = normalizeNumberInput(detailRunDistanceInput);
         const climbMeters = normalizeNumberInput(detailRunClimbInput);
+        const maxElevationMeters = normalizeNumberInput(detailRunElevationInput);
         const durationSeconds = parseDurationInputToSeconds(detailRunDurationInput);
         const pace = detailRunPaceInput.trim();
 
@@ -384,6 +387,10 @@
 
         if (Number.isNaN(climbMeters) || climbMeters < 0) {
           throw new Error("Climb is invalid.");
+        }
+
+        if (Number.isNaN(maxElevationMeters) || maxElevationMeters < 0) {
+          throw new Error("Elevation is invalid.");
         }
 
         if (durationSeconds === null || durationSeconds <= 0) {
@@ -405,6 +412,7 @@
             isRace: detailRunIsRaceInput,
             distance: distanceKm * 1000,
             climb: climbMeters,
+            maxElevation: maxElevationMeters,
             duration: durationSeconds,
             pace,
             description: detailRunDescriptionInput.trim() ? detailRunDescriptionInput.trim() : null,
@@ -607,6 +615,7 @@
           bind:detailRunDateInput
           bind:detailRunDistanceInput
           bind:detailRunClimbInput
+          bind:detailRunElevationInput
           bind:detailRunDurationInput
           bind:detailRunPaceInput
           bind:activeRunInlineField

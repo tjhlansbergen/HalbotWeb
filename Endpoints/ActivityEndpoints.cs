@@ -91,6 +91,7 @@ public static class ActivityEndpoints
                 request.Date,
                 request.Distance,
                 request.Climb,
+                request.MaxElevation,
                 request.Duration,
                 speedMetersPerSecond);
 
@@ -158,6 +159,7 @@ public static class ActivityEndpoints
         DateTime date,
         double distance,
         double climb,
+        double maxElevation,
         double duration,
         double averageSpeed)
     {
@@ -183,6 +185,7 @@ public static class ActivityEndpoints
 
         summary["distance"] = distance;
         summary["elevationGain"] = climb;
+        summary["maxElevation"] = maxElevation;
         summary["duration"] = duration;
         summary["averageSpeed"] = averageSpeed;
         summary["averageMovingSpeed"] = averageSpeed;
@@ -253,6 +256,7 @@ public static class ActivityEndpoints
         bool IsRace,
         double Distance,
         double Climb,
+        double MaxElevation,
         double Duration,
         string Pace,
         string? Description,
