@@ -35,7 +35,7 @@
     activeIndex = (activeIndex + 1) % subPages.length;
   }
 
-  function openRaceDetail(event: CustomEvent<any>) {
+  function openInsightDetail(event: CustomEvent<any>) {
     dispatch("openDetail", event.detail);
   }
 
@@ -79,10 +79,6 @@
   </nav>
 
   <div class="insights-content">
-    {#if current.title === "Races"}
-      <Races on:openDetail={openRaceDetail} />
-    {:else}
-      <svelte:component this={current.component} />
-    {/if}
+    <svelte:component this={current.component} on:openDetail={openInsightDetail} />
   </div>
 </div>
