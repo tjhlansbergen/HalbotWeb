@@ -917,6 +917,10 @@
 		height: 5.2rem;
 	}
 
+	.x-axis-markers-volume .x-marker-value {
+		min-height: 1em;
+	}
+
 	.x-marker-volume {
 		width: 2.35rem;
 		gap: 0.08rem;
