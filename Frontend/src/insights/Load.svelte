@@ -344,9 +344,19 @@
 								{/each}
 
 								{#if hasAnyData(chartData)}
-									<path d={curvedPath(plotted)} class="pace-line"></path>
-									{#each plotted as point (`${series.title}-${point.label}`)}
-										<circle cx={point.x} cy={point.y} r="2.25" class="pace-point" />
+									{#if plotted.length > 1}
+										<path d={curvedPath(plotted.slice(0, -1))} class="pace-line"></path>
+										<path d={curvedPath(plotted.slice(-2))} class="pace-line pace-line-incomplete"></path>
+									{:else}
+										<path d={curvedPath(plotted)} class="pace-line"></path>
+									{/if}
+									{#each plotted as point, pointIndex (`${series.title}-${point.label}`)}
+										<circle
+											cx={point.x}
+											cy={point.y}
+											r="2.25"
+											class={`pace-point ${pointIndex === plotted.length - 1 ? "pace-point-incomplete" : ""}`}
+										/>
 									{/each}
 								{:else}
 									<text x={width / 2} y="52" text-anchor="middle" class="no-data">No pace data</text>
@@ -365,9 +375,11 @@
 							{#each chartData as point, idx (`${series.title}-${idx}`)}
 								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
 								{@const isWeekSeries = series.title === "Average pace for last 14 weeks"}
-							{@const isMonthSeries = series.title === "Average pace for last 14 months"}
-							<span class={`x-marker ${isWeekSeries ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
-								{isWeekSeries ? point.label.replace(" ", "\n") : isMonthSeries ? point.label.split(" ")[0] : point.label}
+								{@const isMonthSeries = series.title === "Average pace for last 14 months"}
+								{@const markerLabel = isWeekSeries ? point.label.replace(" ", "\n") : isMonthSeries ? point.label.split(" ")[0] : point.label}
+								<span class={`x-marker ${isWeekSeries ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
+									<span class="x-marker-label">{markerLabel}</span>
+									<span class="x-marker-value">{formatPace(point.pace)}</span>
 								</span>
 							{/each}
 						</div>
@@ -439,10 +451,19 @@
 		stroke-linejoin: round;
 	}
 
+	.pace-line-incomplete {
+		stroke-dasharray: 3.2 2.4;
+		opacity: 0.5;
+	}
+
 	.pace-point {
 		fill: #2e66a9;
 		stroke: #ffffff;
 		stroke-width: 0.8;
+	}
+
+	.pace-point-incomplete {
+		fill: #c77700;
 	}
 
 	.no-data {
@@ -477,8 +498,8 @@
 	.x-axis-markers {
 		position: relative;
 		width: 100%;
-		height: 2.8rem;
-		margin-top: 0.2rem;
+		height: 3.9rem;
+		margin-top: 0.28rem;
 		font-size: 0.64rem;
 		color: var(--muted-text);
 		font-variant-numeric: tabular-nums;
@@ -487,19 +508,33 @@
 	.x-marker {
 		position: absolute;
 		top: 0;
-		width: 2rem;
+		width: 2.25rem;
 		text-align: center;
 		white-space: normal;
 		overflow: hidden;
 		text-overflow: clip;
 		line-height: 1.05;
 		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.1rem;
+	}
+
+	.x-marker-label {
+		display: block;
+	}
+
+	.x-marker-value {
+		display: block;
+		font-size: 0.58rem;
+		color: var(--insight-title-color);
 	}
 
 	@media (max-width: 700px) {
 		.pace-chart-section {
 			margin-top: 1.9rem;
-			margin-bottom: 1rem;
+			margin-bottom: 3rem;
 		}
 
 		.pace-chart-title {
@@ -526,13 +561,17 @@
 
 		.x-axis-markers {
 			font-size: 0.53rem;
-			height: 3.6rem;
+			height: 4.2rem;
 		}
 
 		.x-marker {
-			width: 1.8rem;
+			width: 1.95rem;
 			word-break: break-word;
 			line-height: 1;
+		}
+
+		.x-marker-value {
+			font-size: 0.5rem;
 		}
 
 		.x-marker-week {
