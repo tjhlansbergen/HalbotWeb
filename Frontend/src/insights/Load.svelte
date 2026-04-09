@@ -334,7 +334,7 @@
 							xScale={scalePoint()}
 							yScale={scaleLinear()}
 							xDomain={chartData.map((point) => point.label)}
-							yDomain={[PACE_TOP_SECONDS, PACE_BOTTOM_SECONDS]}
+							yDomain={[PACE_BOTTOM_SECONDS, PACE_TOP_SECONDS]}
 							yPadding={[0, 0]}
 						>
 							<Svg>
