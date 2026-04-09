@@ -506,7 +506,7 @@
 		</div>
 
 		<div class="stats-section">
-			<h3 class="stats-section-title">Top 5 best months (by volume):</h3>
+			<h3 class="stats-section-title">Top 5 best month (by volume):</h3>
 			<div class="kv-list compact">
 				{#if topMonths.length === 0}
 					<p class="mini-placeholder">No data.</p>
@@ -519,7 +519,7 @@
 		</div>
 
 		<div class="stats-section">
-			<h3 class="stats-section-title">Top 5 best years (by volume):</h3>
+			<h3 class="stats-section-title">Top 5 best year (by volume):</h3>
 			<div class="kv-list compact">
 				{#if topYears.length === 0}
 					<p class="mini-placeholder">No data.</p>
@@ -539,7 +539,7 @@
 		</div>
 
 		<div class="stats-section spacer-before">
-			<h3 class="stats-section-title">Activities by type:</h3>
+			<h3 class="stats-section-title">Activities by vendor:</h3>
 			<div class="kv-list compact">
 				{#if typeCounts.length === 0}
 					<p class="mini-placeholder">No data.</p>
