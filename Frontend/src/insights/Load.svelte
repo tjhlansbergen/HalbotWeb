@@ -649,6 +649,18 @@
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.distanceTop, () => 0)} class="volume-area volume-area-distance"></path>
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.climbTop, (point) => point.distanceTop)} class="volume-area volume-area-climb"></path>
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.workoutTop, (point) => point.climbTop)} class="volume-area volume-area-workout"></path>
+									{@const latestPoint = plotted[plotted.length - 1]}
+									{@const previousPoint = plotted[plotted.length - 2]}
+									{@const dividerX = previousPoint?.x ?? latestPoint?.x}
+									{#if latestPoint}
+										<line
+											x1={dividerX ?? latestPoint.x}
+											y1={yScale(maxY) ?? 0}
+											x2={dividerX ?? latestPoint.x}
+											y2={yScale(0) ?? 0}
+											class="volume-incomplete-guide"
+										/>
+									{/if}
 								{:else}
 									<text x="50%" y="52" text-anchor="middle" class="no-data">No volume data</text>
 								{/if}
@@ -658,7 +670,7 @@
 						<div class="x-axis-markers x-axis-markers-volume" aria-hidden="true">
 							{#each volumeChartData as point, idx (`${group.volume.title}-${idx}`)}
 								{@const position = volumeChartData.length > 1 ? (idx / (volumeChartData.length - 1)) * 100 : 50}
-								<span class="x-marker x-marker-volume" style={`left: ${position}%;`}>
+								<span class={`x-marker x-marker-volume ${idx === volumeChartData.length - 1 ? "x-marker-incomplete" : ""}`} style={`left: ${position}%;`}>
 									<span class="x-marker-label">{markerLabelForSeries(group.volume.title, point.label)}</span>
 									<span class="x-marker-value x-marker-workout">{formatMinutesValue(point.workoutMinutes)}</span>
 									<span class="x-marker-value x-marker-climb">{formatClimbValue(point.climbMeters)}</span>
@@ -820,6 +832,13 @@
 		opacity: 0.88;
 	}
 
+	.volume-incomplete-guide {
+		stroke: var(--muted-text);
+		stroke-width: 0.7;
+		stroke-dasharray: 2 2;
+		opacity: 0.45;
+	}
+
 	.grid-line {
 		stroke: var(--table-border-color);
 		stroke-width: 0.65;
@@ -924,6 +943,10 @@
 	.x-marker-volume {
 		width: 2.35rem;
 		gap: 0.08rem;
+	}
+
+	.x-marker-incomplete {
+		opacity: 0.72;
 	}
 
 	.x-marker-workout {
