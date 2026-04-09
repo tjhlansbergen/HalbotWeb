@@ -182,8 +182,11 @@
 				: null;
 			const pace = avgSpeed === null ? null : paceFromSpeed(avgSpeed);
 
-			const shortDate = `${String(start.getDate()).padStart(2, "0")} ${start.toLocaleString("en-US", { month: "short" })}`;
-			labels.push(shortDate);
+			const thursdayOfWeek = new Date(start);
+			thursdayOfWeek.setDate(start.getDate() + 3);
+			const jan4 = new Date(thursdayOfWeek.getFullYear(), 0, 4);
+			const weekNum = Math.ceil(((thursdayOfWeek.getTime() - jan4.getTime()) / 86400000 + ((jan4.getDay() + 6) % 7) + 1) / 7);
+			labels.push(`W${weekNum}`);
 			values.push(pace);
 		}
 
@@ -362,8 +365,9 @@
 							{#each chartData as point, idx (`${series.title}-${idx}`)}
 								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
 								{@const isWeekSeries = series.title === "Average pace for last 14 weeks"}
-								<span class={`x-marker ${isWeekSeries ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
-									{isWeekSeries ? point.label.replace(" ", "\n") : point.label}
+							{@const isMonthSeries = series.title === "Average pace for last 14 months"}
+							<span class={`x-marker ${isWeekSeries ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
+								{isWeekSeries ? point.label.replace(" ", "\n") : isMonthSeries ? point.label.split(" ")[0] : point.label}
 								</span>
 							{/each}
 						</div>
