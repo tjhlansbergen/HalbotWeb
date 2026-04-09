@@ -3,6 +3,7 @@ Fitness activity tracker revisited
 
 # Todo
 - Fix database column name(s)
+- Make heartrate editable & make reporting
 
 # Palatte
 {"Charcoal Blue":"264653","Verdigris":"2a9d8f","Tuscan Sun":"e9c46a","Sandy Brown":"f4a261","Burnt Peach":"e76f51"}
@@ -13,7 +14,7 @@ Fitness activity tracker revisited
 - Put static files that must persist across builds (icons, manifest, robots.txt) in `Frontend/public`.
 	Vite copies them to `wwwroot` on each build.
 
-## Run in development
+## Run in development (as seperate tasks)
 1. Run backend with HTTPS profile (`https://localhost:7263`).
 2. In a second terminal:
 
@@ -45,7 +46,7 @@ This starts:
 - `dev: backend` (`dotnet watch run --launch-profile https`)
 - `dev: frontend` (`npm run dev` in `Frontend`)
 
-Use `Terminal` -> `Terminate Task...` to stop them.
+Use ctrl-c in each terminal to terminate
 
 
 ## Deploy to prod
@@ -77,4 +78,4 @@ Right-click the publish folder
 Choose "Deploy to Web App"
 Select the target App Service
 
-Want to deploy (overwrite) the database? Add it to the publish folder, and move it into c:\home\data in Azure (Konsole)
+Want to deploy (overwrite) the database? Add it to the publish folder, and move it into c:\home\data in Azure (using Konsole)
