@@ -15,6 +15,8 @@
     "vite": "^5.4.11"
   },
   "dependencies": {
+    "d3-scale": "^4.0.2",
+    "layercake": "^10.0.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3"
   }
