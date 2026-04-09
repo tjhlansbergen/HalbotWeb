@@ -6,6 +6,13 @@
 	type Activity = {
 		date: string;
 		speed: number;
+		distance: number;
+		climb: number;
+	};
+
+	type Workout = {
+		date: string;
+		minutes: number;
 	};
 
 	type BucketSeries = {
@@ -28,9 +35,39 @@
 		pace: number;
 	};
 
+	type VolumeSeries = {
+		title: string;
+		labels: string[];
+		distanceKm: number[];
+		climbMeters: number[];
+		workoutMinutes: number[];
+	};
+
+	type VolumeChartPoint = {
+		index: number;
+		label: string;
+		distanceKm: number;
+		climbMeters: number;
+		workoutMinutes: number;
+		distanceHeight: number;
+		climbHeight: number;
+		workoutHeight: number;
+		totalHeight: number;
+	};
+
+	type VolumePlotPoint = {
+		x: number;
+		distanceTop: number;
+		climbTop: number;
+		workoutTop: number;
+	};
+
 	const BUCKET_COUNT = 14;
 	const PACE_TOP_SECONDS = 300; // 5:00 min/km
 	const PACE_BOTTOM_SECONDS = 420; // 7:00 min/km
+	const HEIGHT_PER_KM = 1;
+	const HEIGHT_PER_CLIMB_METER = 10 / 500;
+	const HEIGHT_PER_WORKOUT_MINUTE = 10 / 60;
 
 	let isLoading = true;
 	let error = "";
@@ -54,6 +91,30 @@
 		labels: [],
 		values: [],
 		currentLabel: ""
+	};
+
+	let weekVolumeSeries: VolumeSeries = {
+		title: "Volume for last 14 weeks",
+		labels: [],
+		distanceKm: [],
+		climbMeters: [],
+		workoutMinutes: []
+	};
+
+	let monthVolumeSeries: VolumeSeries = {
+		title: "Volume for last 14 months",
+		labels: [],
+		distanceKm: [],
+		climbMeters: [],
+		workoutMinutes: []
+	};
+
+	let yearVolumeSeries: VolumeSeries = {
+		title: "Volume for last 14 years",
+		labels: [],
+		distanceKm: [],
+		climbMeters: [],
+		workoutMinutes: []
 	};
 
 	function parseDate(value: string): Date | null {
@@ -95,6 +156,51 @@
 		return Math.max(min, Math.min(max, value));
 	}
 
+	function safePositiveNumber(value: unknown): number {
+		const numeric = Number(value);
+		return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+	}
+
+	function normalizeDistanceKm(distanceMeters: number): number {
+		return distanceMeters / 1000;
+	}
+
+	function markerLabelForSeries(seriesTitle: string, label: string): string {
+		if (seriesTitle.includes("last 14 weeks")) {
+			return label.replace(" ", "\n");
+		}
+
+		if (seriesTitle.includes("last 14 months")) {
+			return label.split(" ")[0] ?? label;
+		}
+
+		return label;
+	}
+
+	function formatMinutesValue(minutes: number): string {
+		if (!Number.isFinite(minutes) || minutes <= 0) {
+			return "";
+		}
+
+		return `${Math.round(minutes)}'`;
+	}
+
+	function formatClimbValue(climbMeters: number): string {
+		if (!Number.isFinite(climbMeters) || climbMeters <= 0) {
+			return "";
+		}
+
+		return `${Math.round(climbMeters)}m`;
+	}
+
+	function formatDistanceValue(distanceKm: number): string {
+		if (!Number.isFinite(distanceKm) || distanceKm <= 0) {
+			return "";
+		}
+
+		return `${Math.round(distanceKm)}km`;
+	}
+
 	function toChartData(series: BucketSeries): ChartPoint[] {
 		return series.labels.map((label, index) => ({
 			index,
@@ -105,6 +211,73 @@
 
 	function hasAnyData(points: ChartPoint[]): boolean {
 		return points.some((point) => point.pace !== null);
+	}
+
+	function toVolumeChartData(series: VolumeSeries): VolumeChartPoint[] {
+		return series.labels.map((label, index) => {
+			const distanceKm = series.distanceKm[index] ?? 0;
+			const climbMeters = series.climbMeters[index] ?? 0;
+			const workoutMinutes = series.workoutMinutes[index] ?? 0;
+			const distanceHeight = distanceKm * HEIGHT_PER_KM;
+			const climbHeight = climbMeters * HEIGHT_PER_CLIMB_METER;
+			const workoutHeight = workoutMinutes * HEIGHT_PER_WORKOUT_MINUTE;
+
+			return {
+				index,
+				label,
+				distanceKm,
+				climbMeters,
+				workoutMinutes,
+				distanceHeight,
+				climbHeight,
+				workoutHeight,
+				totalHeight: distanceHeight + climbHeight + workoutHeight
+			};
+		});
+	}
+
+	function hasAnyVolumeData(points: VolumeChartPoint[]): boolean {
+		return points.some((point) => point.totalHeight > 0);
+	}
+
+	function volumeDomainMax(points: VolumeChartPoint[]): number {
+		const maxValue = points.reduce((max, point) => Math.max(max, point.totalHeight), 0);
+		return maxValue > 0 ? maxValue : 1;
+	}
+
+	function plottedVolumePoints(points: VolumeChartPoint[], xScale: (value: string) => number | undefined): VolumePlotPoint[] {
+		return points.map((point) => ({
+			x: xScale(point.label) ?? 0,
+			distanceTop: point.distanceHeight,
+			climbTop: point.distanceHeight + point.climbHeight,
+			workoutTop: point.totalHeight
+		}));
+	}
+
+	function stackedAreaPath(
+		points: VolumePlotPoint[],
+		yScale: (value: number) => number | undefined,
+		topValue: (point: VolumePlotPoint) => number,
+		bottomValue: (point: VolumePlotPoint) => number
+	): string {
+		if (points.length === 0) {
+			return "";
+		}
+
+		const yTop = (point: VolumePlotPoint) => yScale(topValue(point)) ?? 0;
+		const yBottom = (point: VolumePlotPoint) => yScale(bottomValue(point)) ?? 0;
+
+		let path = `M ${points[0].x} ${yTop(points[0])}`;
+		for (let i = 1; i < points.length; i += 1) {
+			path += ` L ${points[i].x} ${yTop(points[i])}`;
+		}
+
+		for (let i = points.length - 1; i >= 0; i -= 1) {
+			path += ` L ${points[i].x} ${yBottom(points[i])}`;
+		}
+
+		path += " Z";
+		return path;
 	}
 
 	function plottedPoints(
@@ -260,7 +433,122 @@
 		};
 	}
 
-	function compute(activities: Activity[]): void {
+	function buildWeekVolumeBuckets(
+		activities: Array<Activity & { parsedDate: Date }>,
+		workouts: Array<Workout & { parsedDate: Date }>,
+		today: Date
+	): VolumeSeries {
+		const currentWeekStart = weekStartMonday(today);
+		const labels: string[] = [];
+		const distanceKm: number[] = [];
+		const climbMeters: number[] = [];
+		const workoutMinutes: number[] = [];
+
+		for (let i = BUCKET_COUNT - 1; i >= 0; i -= 1) {
+			const start = addDays(currentWeekStart, -7 * i);
+			const end = addDays(start, 7);
+			const activityBucket = activities.filter((activity) => activity.parsedDate >= start && activity.parsedDate < end);
+			const workoutBucket = workouts.filter((workout) => workout.parsedDate >= start && workout.parsedDate < end);
+
+			const totalDistanceMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.distance), 0);
+			const totalClimbMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.climb), 0);
+			const totalWorkoutMinutes = workoutBucket.reduce((sum, workout) => sum + safePositiveNumber(workout.minutes), 0);
+
+			const thursdayOfWeek = new Date(start);
+			thursdayOfWeek.setDate(start.getDate() + 3);
+			const jan4 = new Date(thursdayOfWeek.getFullYear(), 0, 4);
+			const weekNum = Math.ceil(((thursdayOfWeek.getTime() - jan4.getTime()) / 86400000 + ((jan4.getDay() + 6) % 7) + 1) / 7);
+
+			labels.push(`W${weekNum}`);
+			distanceKm.push(normalizeDistanceKm(totalDistanceMeters));
+			climbMeters.push(totalClimbMeters);
+			workoutMinutes.push(totalWorkoutMinutes);
+		}
+
+		return {
+			title: "Volume for last 14 weeks",
+			labels,
+			distanceKm,
+			climbMeters,
+			workoutMinutes
+		};
+	}
+
+	function buildMonthVolumeBuckets(
+		activities: Array<Activity & { parsedDate: Date }>,
+		workouts: Array<Workout & { parsedDate: Date }>,
+		today: Date
+	): VolumeSeries {
+		const current = new Date(today.getFullYear(), today.getMonth(), 1);
+		const labels: string[] = [];
+		const distanceKm: number[] = [];
+		const climbMeters: number[] = [];
+		const workoutMinutes: number[] = [];
+
+		for (let i = BUCKET_COUNT - 1; i >= 0; i -= 1) {
+			const start = new Date(current.getFullYear(), current.getMonth() - i, 1);
+			const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+			const activityBucket = activities.filter((activity) => activity.parsedDate >= start && activity.parsedDate < end);
+			const workoutBucket = workouts.filter((workout) => workout.parsedDate >= start && workout.parsedDate < end);
+
+			const totalDistanceMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.distance), 0);
+			const totalClimbMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.climb), 0);
+			const totalWorkoutMinutes = workoutBucket.reduce((sum, workout) => sum + safePositiveNumber(workout.minutes), 0);
+
+			const monthLabel = start.toLocaleString("en-US", { month: "short" });
+			labels.push(`${monthLabel} ${start.getFullYear()}`);
+			distanceKm.push(normalizeDistanceKm(totalDistanceMeters));
+			climbMeters.push(totalClimbMeters);
+			workoutMinutes.push(totalWorkoutMinutes);
+		}
+
+		return {
+			title: "Volume for last 14 months",
+			labels,
+			distanceKm,
+			climbMeters,
+			workoutMinutes
+		};
+	}
+
+	function buildYearVolumeBuckets(
+		activities: Array<Activity & { parsedDate: Date }>,
+		workouts: Array<Workout & { parsedDate: Date }>,
+		today: Date
+	): VolumeSeries {
+		const currentYear = today.getFullYear();
+		const labels: string[] = [];
+		const distanceKm: number[] = [];
+		const climbMeters: number[] = [];
+		const workoutMinutes: number[] = [];
+
+		for (let i = BUCKET_COUNT - 1; i >= 0; i -= 1) {
+			const year = currentYear - i;
+			const start = new Date(year, 0, 1);
+			const end = new Date(year + 1, 0, 1);
+			const activityBucket = activities.filter((activity) => activity.parsedDate >= start && activity.parsedDate < end);
+			const workoutBucket = workouts.filter((workout) => workout.parsedDate >= start && workout.parsedDate < end);
+
+			const totalDistanceMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.distance), 0);
+			const totalClimbMeters = activityBucket.reduce((sum, activity) => sum + safePositiveNumber(activity.climb), 0);
+			const totalWorkoutMinutes = workoutBucket.reduce((sum, workout) => sum + safePositiveNumber(workout.minutes), 0);
+
+			labels.push(String(year));
+			distanceKm.push(normalizeDistanceKm(totalDistanceMeters));
+			climbMeters.push(totalClimbMeters);
+			workoutMinutes.push(totalWorkoutMinutes);
+		}
+
+		return {
+			title: "Volume for last 14 years",
+			labels,
+			distanceKm,
+			climbMeters,
+			workoutMinutes
+		};
+	}
+
+	function compute(activities: Activity[], workouts: Workout[]): void {
 		const today = startOfDay(new Date());
 		const dated = activities
 			.map((activity) => ({
@@ -268,10 +556,19 @@
 				parsedDate: parseDate(activity.date)
 			}))
 			.filter((activity) => activity.parsedDate !== null) as Array<Activity & { parsedDate: Date }>;
+		const datedWorkouts = workouts
+			.map((workout) => ({
+				...workout,
+				parsedDate: parseDate(workout.date)
+			}))
+			.filter((workout) => workout.parsedDate !== null) as Array<Workout & { parsedDate: Date }>;
 
 		weekSeries = buildWeekBuckets(dated, today);
 		monthSeries = buildMonthBuckets(dated, today);
 		yearSeries = buildYearBuckets(dated, today);
+		weekVolumeSeries = buildWeekVolumeBuckets(dated, datedWorkouts, today);
+		monthVolumeSeries = buildMonthVolumeBuckets(dated, datedWorkouts, today);
+		yearVolumeSeries = buildYearVolumeBuckets(dated, datedWorkouts, today);
 	}
 
 	async function load(): Promise<void> {
@@ -279,22 +576,32 @@
 		error = "";
 
 		try {
-			const response = await fetch("/api/activities/", {
-				method: "GET",
-				credentials: "include"
-			});
+			const [activitiesResponse, workoutsResponse] = await Promise.all([
+				fetch("/api/activities/", {
+					method: "GET",
+					credentials: "include"
+				}),
+				fetch("/api/workouts/", {
+					method: "GET",
+					credentials: "include"
+				})
+			]);
 
-			if (response.status === 401) {
+			if (activitiesResponse.status === 401 || workoutsResponse.status === 401) {
 				throw new Error("You are not logged in.");
 			}
 
-			if (!response.ok) {
+			if (!activitiesResponse.ok || !workoutsResponse.ok) {
 				throw new Error("Could not load load data.");
 			}
 
-			const payload = await response.json();
-			const activities = (Array.isArray(payload) ? payload : []) as Activity[];
-			compute(activities);
+			const [activitiesPayload, workoutsPayload] = await Promise.all([
+				activitiesResponse.json(),
+				workoutsResponse.json()
+			]);
+			const activities = (Array.isArray(activitiesPayload) ? activitiesPayload : []) as Activity[];
+			const workouts = (Array.isArray(workoutsPayload) ? workoutsPayload : []) as Workout[];
+			compute(activities, workouts);
 		} catch (err) {
 			error = err instanceof Error ? err.message : "Could not load load data.";
 		} finally {
@@ -313,6 +620,52 @@
 	<section class="load" aria-label="Load insights">
 		<div class="load-section">
 			<h3 class="load-section-title">Volume</h3>
+
+			{#each [weekVolumeSeries, monthVolumeSeries, yearVolumeSeries] as series (series.title)}
+				{@const chartData = toVolumeChartData(series)}
+				{@const maxY = volumeDomainMax(chartData)}
+				<div class="volume-chart-section">
+					<h4 class="pace-chart-title">{series.title}</h4>
+					<div class="volume-chart-wrap" role="img" aria-label={`${series.title}, stacked volume with distance, climb, and workout minutes`}>
+						<LayerCake
+							let:xScale
+							let:yScale
+							ssr={false}
+							data={chartData}
+							x="label"
+							y="totalHeight"
+							xScale={scalePoint()}
+							yScale={scaleLinear()}
+							xDomain={chartData.map((point) => point.label)}
+							yDomain={[0, maxY]}
+							yPadding={[0, 0]}
+						>
+							<Svg>
+								{#if hasAnyVolumeData(chartData)}
+									{@const plotted = plottedVolumePoints(chartData, xScale)}
+									<path d={stackedAreaPath(plotted, yScale, (point) => point.distanceTop, () => 0)} class="volume-area volume-area-distance"></path>
+									<path d={stackedAreaPath(plotted, yScale, (point) => point.climbTop, (point) => point.distanceTop)} class="volume-area volume-area-climb"></path>
+									<path d={stackedAreaPath(plotted, yScale, (point) => point.workoutTop, (point) => point.climbTop)} class="volume-area volume-area-workout"></path>
+								{:else}
+									<text x="50%" y="52" text-anchor="middle" class="no-data">No volume data</text>
+								{/if}
+							</Svg>
+						</LayerCake>
+
+						<div class="x-axis-markers x-axis-markers-volume" aria-hidden="true">
+							{#each chartData as point, idx (`${series.title}-${idx}`)}
+								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
+								<span class="x-marker x-marker-volume" style={`left: ${position}%;`}>
+									<span class="x-marker-label">{markerLabelForSeries(series.title, point.label)}</span>
+									<span class="x-marker-value x-marker-workout">{formatMinutesValue(point.workoutMinutes)}</span>
+									<span class="x-marker-value x-marker-climb">{formatClimbValue(point.climbMeters)}</span>
+									<span class="x-marker-value x-marker-distance">{formatDistanceValue(point.distanceKm)}</span>
+								</span>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/each}
 		</div>
 
 		<div class="load-section">
@@ -374,11 +727,8 @@
 						<div class="x-axis-markers" aria-hidden="true">
 							{#each chartData as point, idx (`${series.title}-${idx}`)}
 								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
-								{@const isWeekSeries = series.title === "Average pace for last 14 weeks"}
-								{@const isMonthSeries = series.title === "Average pace for last 14 months"}
-								{@const markerLabel = isWeekSeries ? point.label.replace(" ", "\n") : isMonthSeries ? point.label.split(" ")[0] : point.label}
-								<span class={`x-marker ${isWeekSeries ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
-									<span class="x-marker-label">{markerLabel}</span>
+								<span class={`x-marker ${series.title === "Average pace for last 14 weeks" ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
+									<span class="x-marker-label">{markerLabelForSeries(series.title, point.label)}</span>
 									<span class="x-marker-value">{formatPace(point.pace)}</span>
 								</span>
 							{/each}
@@ -419,6 +769,11 @@
 		margin-bottom: 3rem;
 	}
 
+	.volume-chart-section {
+		margin-top: 2rem;
+		margin-bottom: 3rem;
+	}
+
 	.pace-chart-title {
 		margin: 0 0 1rem;
 		font-size: 0.95rem;
@@ -432,10 +787,37 @@
 		padding: 0 2.7rem;
 	}
 
+	.volume-chart-wrap {
+		position: relative;
+		height: 11.5rem;
+		padding: 0 0.35rem;
+	}
+
 	:global(.pace-chart-wrap .layercake-container),
-	:global(.pace-chart-wrap .layercake-container-inner) {
+	:global(.pace-chart-wrap .layercake-container-inner),
+	:global(.volume-chart-wrap .layercake-container),
+	:global(.volume-chart-wrap .layercake-container-inner) {
 		width: 100%;
 		height: 100%;
+	}
+
+	.volume-area {
+		stroke: none;
+	}
+
+	.volume-area-distance {
+		fill: #5f9ea0;
+		opacity: 0.95;
+	}
+
+	.volume-area-climb {
+		fill: darkseagreen;
+		opacity: 0.9;
+	}
+
+	.volume-area-workout {
+		fill: #f0d060;
+		opacity: 0.88;
 	}
 
 	.grid-line {
@@ -531,10 +913,36 @@
 		color: var(--insight-title-color);
 	}
 
+	.x-axis-markers-volume {
+		height: 5.2rem;
+	}
+
+	.x-marker-volume {
+		width: 2.35rem;
+		gap: 0.08rem;
+	}
+
+	.x-marker-workout {
+		color: #f0d060;
+	}
+
+	.x-marker-climb {
+		color: darkseagreen;
+	}
+
+	.x-marker-distance {
+		color: #5f9ea0;
+	}
+
 	@media (max-width: 700px) {
 		.pace-chart-section {
 			margin-top: 1.9rem;
 			margin-bottom: 3rem;
+		}
+
+		.volume-chart-section {
+			margin-top: 1.9rem;
+			margin-bottom: 4rem;
 		}
 
 		.pace-chart-title {
@@ -544,6 +952,10 @@
 		.pace-chart-wrap {
 			height: 10rem;
 			padding: 0 0.35rem 0 0;
+		}
+
+		.volume-chart-wrap {
+			height: 10rem;
 		}
 
 		.y-axis {
@@ -564,10 +976,18 @@
 			height: 4.2rem;
 		}
 
+		.x-axis-markers-volume {
+			height: 5.35rem;
+		}
+
 		.x-marker {
 			width: 1.95rem;
 			word-break: break-word;
 			line-height: 1;
+		}
+
+		.x-marker-volume {
+			width: 2rem;
 		}
 
 		.x-marker-value {
