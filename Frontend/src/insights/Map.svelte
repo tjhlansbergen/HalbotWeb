@@ -315,7 +315,7 @@
 
 	@media (max-width: 700px) {
 		.map-canvas {
-			height: 20rem;
+			height: 30rem;
 			border-radius: 8px;
 		}
 

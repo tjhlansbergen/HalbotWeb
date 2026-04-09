@@ -2,7 +2,6 @@
 Fitness activity tracker revisited
 
 # Todo
-- Highest point per run, editable?
 - Fix database column name(s)
 
 # Palatte

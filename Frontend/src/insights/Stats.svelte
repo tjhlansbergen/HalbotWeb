@@ -88,7 +88,7 @@
 	function formatDateFull(value: Date): string {
 		return new Intl.DateTimeFormat("en-US", {
 			weekday: "long",
-			month: "long",
+			month: "short",
 			day: "numeric",
 			year: "numeric"
 		}).format(value);
@@ -97,7 +97,7 @@
 	function formatDateMonthDay(value: Date): string {
 		return new Intl.DateTimeFormat("en-US", {
 			day: "2-digit",
-			month: "long"
+			month: "short"
 		}).format(value);
 	}
 
@@ -317,7 +317,7 @@
 			weekMap.set(weekKey, weekRow);
 
 			const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-			const monthName = date.toLocaleString("en-US", { month: "long" });
+			const monthName = date.toLocaleString("en-US", { month: "short" });
 			const monthLabel = `${date.getFullYear()} ${monthName}`;
 			const monthRow = monthMap.get(monthKey) ?? { label: monthLabel, distanceKm: 0 };
 			monthRow.distanceKm += distanceKm;
