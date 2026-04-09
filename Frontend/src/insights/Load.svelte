@@ -618,31 +618,34 @@
 	<p class="insights-placeholder">{error}</p>
 {:else}
 	<section class="load" aria-label="Load insights">
-		<div class="load-section">
-			<h3 class="load-section-title">Volume</h3>
-
-			{#each [weekVolumeSeries, monthVolumeSeries, yearVolumeSeries] as series (series.title)}
-				{@const chartData = toVolumeChartData(series)}
-				{@const maxY = volumeDomainMax(chartData)}
+		{#each [
+			{ key: "weeks", volume: weekVolumeSeries, pace: weekSeries },
+			{ key: "months", volume: monthVolumeSeries, pace: monthSeries },
+			{ key: "years", volume: yearVolumeSeries, pace: yearSeries }
+		] as group (group.key)}
+			{@const volumeChartData = toVolumeChartData(group.volume)}
+			{@const maxY = volumeDomainMax(volumeChartData)}
+			{@const paceChartData = toChartData(group.pace)}
+			<div class="load-section">
 				<div class="volume-chart-section">
-					<h4 class="pace-chart-title">{series.title}</h4>
-					<div class="volume-chart-wrap" role="img" aria-label={`${series.title}, stacked volume with distance, climb, and workout minutes`}>
+					<h4 class="pace-chart-title">{group.volume.title}</h4>
+					<div class="volume-chart-wrap" role="img" aria-label={`${group.volume.title}, stacked volume with distance, climb, and workout minutes`}>
 						<LayerCake
 							let:xScale
 							let:yScale
 							ssr={false}
-							data={chartData}
+							data={volumeChartData}
 							x="label"
 							y="totalHeight"
 							xScale={scalePoint()}
 							yScale={scaleLinear()}
-							xDomain={chartData.map((point) => point.label)}
+							xDomain={volumeChartData.map((point) => point.label)}
 							yDomain={[0, maxY]}
 							yPadding={[0, 0]}
 						>
 							<Svg>
-								{#if hasAnyVolumeData(chartData)}
-									{@const plotted = plottedVolumePoints(chartData, xScale)}
+								{#if hasAnyVolumeData(volumeChartData)}
+									{@const plotted = plottedVolumePoints(volumeChartData, xScale)}
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.distanceTop, () => 0)} class="volume-area volume-area-distance"></path>
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.climbTop, (point) => point.distanceTop)} class="volume-area volume-area-climb"></path>
 									<path d={stackedAreaPath(plotted, yScale, (point) => point.workoutTop, (point) => point.climbTop)} class="volume-area volume-area-workout"></path>
@@ -653,10 +656,10 @@
 						</LayerCake>
 
 						<div class="x-axis-markers x-axis-markers-volume" aria-hidden="true">
-							{#each chartData as point, idx (`${series.title}-${idx}`)}
-								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
+							{#each volumeChartData as point, idx (`${group.volume.title}-${idx}`)}
+								{@const position = volumeChartData.length > 1 ? (idx / (volumeChartData.length - 1)) * 100 : 50}
 								<span class="x-marker x-marker-volume" style={`left: ${position}%;`}>
-									<span class="x-marker-label">{markerLabelForSeries(series.title, point.label)}</span>
+									<span class="x-marker-label">{markerLabelForSeries(group.volume.title, point.label)}</span>
 									<span class="x-marker-value x-marker-workout">{formatMinutesValue(point.workoutMinutes)}</span>
 									<span class="x-marker-value x-marker-climb">{formatClimbValue(point.climbMeters)}</span>
 									<span class="x-marker-value x-marker-distance">{formatDistanceValue(point.distanceKm)}</span>
@@ -665,45 +668,38 @@
 						</div>
 					</div>
 				</div>
-			{/each}
-		</div>
 
-		<div class="load-section">
-			<h3 class="load-section-title">Pace</h3>
-
-			{#each [weekSeries, monthSeries, yearSeries] as series (series.title)}
-				{@const chartData = toChartData(series)}
 				<div class="pace-chart-section">
-					<h4 class="pace-chart-title">{series.title}</h4>
-					<div class="pace-chart-wrap" role="img" aria-label={`${series.title}, pace range from 5:00 to 7:00 per kilometer`}>
+					<h4 class="pace-chart-title">{group.pace.title}</h4>
+					<div class="pace-chart-wrap" role="img" aria-label={`${group.pace.title}, pace range from 5:00 to 7:00 per kilometer`}>
 						<LayerCake
 							let:xScale
 							let:yScale
 							let:width
 							ssr={false}
-							data={chartData}
+							data={paceChartData}
 							x="label"
 							y="pace"
 							xScale={scalePoint()}
 							yScale={scaleLinear()}
-							xDomain={chartData.map((point) => point.label)}
+							xDomain={paceChartData.map((point) => point.label)}
 							yDomain={[PACE_BOTTOM_SECONDS, PACE_TOP_SECONDS]}
 							yPadding={[0, 0]}
 						>
 							<Svg>
-								{@const plotted = plottedPoints(chartData, xScale, yScale)}
-								{#each [PACE_TOP_SECONDS, 330, 360, 390, PACE_BOTTOM_SECONDS] as tick (`${series.title}-${tick}`)}
+								{@const plotted = plottedPoints(paceChartData, xScale, yScale)}
+								{#each [PACE_TOP_SECONDS, 330, 360, 390, PACE_BOTTOM_SECONDS] as tick (`${group.pace.title}-${tick}`)}
 									<line x1="0" y1={yScale(tick) ?? 0} x2={width} y2={yScale(tick) ?? 0} class="grid-line" />
 								{/each}
 
-								{#if hasAnyData(chartData)}
+								{#if hasAnyData(paceChartData)}
 									{#if plotted.length > 1}
 										<path d={curvedPath(plotted.slice(0, -1))} class="pace-line"></path>
 										<path d={curvedPath(plotted.slice(-2))} class="pace-line pace-line-incomplete"></path>
 									{:else}
 										<path d={curvedPath(plotted)} class="pace-line"></path>
 									{/if}
-									{#each plotted as point, pointIndex (`${series.title}-${point.label}`)}
+									{#each plotted as point, pointIndex (`${group.pace.title}-${point.label}`)}
 										<circle
 											cx={point.x}
 											cy={point.y}
@@ -725,18 +721,18 @@
 						</div>
 
 						<div class="x-axis-markers" aria-hidden="true">
-							{#each chartData as point, idx (`${series.title}-${idx}`)}
-								{@const position = chartData.length > 1 ? (idx / (chartData.length - 1)) * 100 : 50}
-								<span class={`x-marker ${series.title === "Average pace for last 14 weeks" ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
-									<span class="x-marker-label">{markerLabelForSeries(series.title, point.label)}</span>
+							{#each paceChartData as point, idx (`${group.pace.title}-${idx}`)}
+								{@const position = paceChartData.length > 1 ? (idx / (paceChartData.length - 1)) * 100 : 50}
+								<span class={`x-marker ${group.pace.title === "Average pace for last 14 weeks" ? "x-marker-week" : ""}`} style={`left: ${position}%;`}>
+									<span class="x-marker-label">{markerLabelForSeries(group.pace.title, point.label)}</span>
 									<span class="x-marker-value">{formatPace(point.pace)}</span>
 								</span>
 							{/each}
 						</div>
 					</div>
 				</div>
-			{/each}
-		</div>
+			</div>
+		{/each}
 	</section>
 {/if}
 
@@ -771,7 +767,7 @@
 
 	.volume-chart-section {
 		margin-top: 2rem;
-		margin-bottom: 3rem;
+		margin-bottom: 5rem;
 	}
 
 	.pace-chart-title {
