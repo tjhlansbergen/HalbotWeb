@@ -748,6 +748,10 @@
 		padding-top: 0.28rem;
 	}
 
+	.load-section:not(:last-child) {
+		margin-bottom: 2rem;
+	}
+
 	.load-section:first-child {
 		border-top: 0;
 		padding-top: 0;
