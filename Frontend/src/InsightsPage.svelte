@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import Load      from "./insights/Load.svelte";
+  import Fingerprint from "./insights/Fingerprint.svelte";
   import Y2D       from "./insights/Y2D.svelte";
   import Stats     from "./insights/Stats.svelte";
   import Weeks     from "./insights/Weeks.svelte";
@@ -17,6 +18,7 @@
   const subPages = [
     { title: "Weeks",     component: Weeks     },
     { title: "Load",      component: Load      },
+    { title: "Fingerprint", component: Fingerprint },
     { title: "Y2D",       component: Y2D       },
     { title: "Stats",     component: Stats     },
     { title: "Races",     component: Races     },
