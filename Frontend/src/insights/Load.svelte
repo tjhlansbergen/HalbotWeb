@@ -190,7 +190,7 @@
 			return "";
 		}
 
-		return `${Math.round(climbMeters)}m`;
+		return `${Math.round(climbMeters)}`;
 	}
 
 	function formatDistanceValue(distanceKm: number): string {
@@ -198,7 +198,7 @@
 			return "";
 		}
 
-		return `${Math.round(distanceKm)}km`;
+		return `${Math.round(distanceKm)}`;
 	}
 
 	function toChartData(series: BucketSeries): ChartPoint[] {

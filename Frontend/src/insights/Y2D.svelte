@@ -260,7 +260,7 @@
 
 	.metric-row {
 		display: grid;
-		grid-template-columns: 4rem 4.8rem 1fr;
+		grid-template-columns: 4rem 6rem 1fr;
 		gap: 0.05rem;
 		align-items: center;
 		min-height: 1.6rem;
@@ -284,14 +284,14 @@
 
 	.metric-bar-wrap {
 		width: min(18.5rem, 100%);
-		height: 2rem;
+		height: 1.3rem;
 		display: flex;
 		align-items: center;
 	}
 
 	.metric-bar {
 		display: inline-block;
-		height: 2rem;
+		height: 1.3rem;
 		border-radius: 0;
 		opacity: 0.8;
 		transition: width 0.25s ease;
@@ -335,7 +335,7 @@
 		}
 
 		.metric-row {
-			grid-template-columns: 3.1rem 3.9rem 1fr;
+			grid-template-columns: 3.1rem 5rem 1fr;
 			min-height: 1.25rem;
 		}
 
@@ -350,7 +350,7 @@
 
 		.metric-bar-wrap,
 		.metric-bar {
-			height: 1.45rem;
+			height: 1rem;
 		}
 	}
 </style>
